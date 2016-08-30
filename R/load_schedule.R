@@ -1,7 +1,7 @@
 library(dplyr)
 library(RPostgreSQL)
 
-source("get_db.R")
+source("R/utils.R")
 
 NWEEKS <- 17
 BYE_STR <- "BYE"

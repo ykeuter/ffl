@@ -1,8 +1,7 @@
 library(dplyr)
 library(RPostgreSQL)
 
-source("get_db.R")
-source("escape_name.R")
+source("R/utils.R")
 
 db <- getDb()
 
@@ -34,7 +33,7 @@ DEFENSE_FILE <- "data/defense.csv"
 data <- read.csv(DEFENSE_FILE)
 
 teamId <- teams$id[match(data$Team, teams$team_name)]
-lapply(seq_along(teamId), function(i) {
+q <- lapply(seq_along(teamId), function(i) {
   if (!is.na(teamId[i])) {
     dbGetQuery(db$con, sprintf("update team set projected_defense_points = %s where id = %s", 
                                data$Pts[i], teamId[i]))

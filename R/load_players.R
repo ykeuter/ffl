@@ -1,8 +1,7 @@
 library(dplyr)
 library(RPostgreSQL)
 
-source("get_db.R")
-source("escape_name.R")
+source("R/utils.R")
 
 db <- getDb()
 

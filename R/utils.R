@@ -6,3 +6,7 @@ getDb <- function() {
                host = "localhost",
                port = 5432, user = "postgres", password = "7tiR9H0NR7Bq")
 }
+
+escapeName <- function(name) {
+  gsub("'", " ", name)
+}
