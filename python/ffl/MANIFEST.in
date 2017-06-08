@@ -1,0 +1,3 @@
+graft ffl/templates
+graft ffl/static
+include ffl/schema.sql
