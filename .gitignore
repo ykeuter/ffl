@@ -2,3 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+*.pyc
+venv
+ffl.egg-info
+*.swp
