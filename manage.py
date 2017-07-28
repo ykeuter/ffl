@@ -10,6 +10,7 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def delete_data():
+    db.session.execute(models.playerPosition.delete())
     models.NflPlayer.query.delete()
     models.Position.query.delete()
     models.NflGame.query.delete()
@@ -18,7 +19,7 @@ def delete_data():
 
 @manager.command
 def load_data():
-    with open('data/teams.csv') as f:
+    with open(app.config['TEAMS_FILE']) as f:
         r = csv.reader(f)
         r.next()
         teams = [models.NflTeam(row[0], row[1], row[2]) for row in r]
@@ -27,7 +28,7 @@ def load_data():
     db.session.commit()
 
     BYE_STRING = "BYE"
-    with open('data/schedule.csv') as f:
+    with open(app.config['SCHEDULE_FILE']) as f:
         r = csv.reader(f)
         r.next()
         for row in r:
@@ -39,7 +40,7 @@ def load_data():
                     db.session.add(models.NflGame(home, away, i))
     db.session.commit()
 
-    with open('data/positions.csv') as f:
+    with open(app.config['POSITIONS_FILE']) as f:
         r = csv.reader(f)
         r.next()
         positions = [models.Position(row[0], row[1]) for row in r]
@@ -49,7 +50,7 @@ def load_data():
 
     DEF_STRING = "D"
     FA_STRING = "FA"
-    with open('data/projections.csv') as f:
+    with open(app.config['PROJECTIONS_FILE']) as f:
         r = csv.reader(f)
         r.next()
         for row in r:
