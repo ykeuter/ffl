@@ -6,3 +6,4 @@
 venv
 ffl.egg-info
 *.swp
+.~lock.*

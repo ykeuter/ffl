@@ -9,14 +9,61 @@ manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
 @manager.command
-def load_schedule():
+def delete_data():
+    models.NflPlayer.query.delete()
+    models.Position.query.delete()
+    models.NflGame.query.delete()
+    models.NflTeam.query.delete()
+    db.session.commit()
+
+@manager.command
+def load_data():
+    with open('data/teams.csv') as f:
+        r = csv.reader(f)
+        r.next()
+        teams = [models.NflTeam(row[0], row[1], row[2]) for row in r]
+    for t in teams:
+        db.session.add(t)
+    db.session.commit()
+
+    BYE_STRING = "BYE"
     with open('data/schedule.csv') as f:
         r = csv.reader(f)
-        teams = []
         r.next()
-        teams = [{"name": row[0], "bye_week": row.index("BYE") - 1}
-                    for row in r]
-    db.session.bulk_insert_mappings(models.Team, teams)
+        for row in r:
+            home = next(x for x in teams if x.espn_name == row[0])
+            home.bye_week = row.index(BYE_STRING)
+            for i in xrange(1, len(row)):
+                away = next((x for x in teams if x.espn_name == row[i]), None)
+                if away != None:
+                    db.session.add(models.NflGame(home, away, i))
+    db.session.commit()
+
+    with open('data/positions.csv') as f:
+        r = csv.reader(f)
+        r.next()
+        positions = [models.Position(row[0], row[1]) for row in r]
+        for p in positions:
+            db.session.add(p)
+    db.session.commit()
+
+    DEF_STRING = "D"
+    FA_STRING = "FA"
+    with open('data/projections.csv') as f:
+        r = csv.reader(f)
+        r.next()
+        for row in r:
+            if len(row) == 0:
+                break
+            if row[2] == FA_STRING:
+                t = None
+            else:
+                t = next((x for x in teams if x.fs_name == row[2]), None)
+            if row[3] == DEF_STRING:
+                t.projected_defense_points = row[14]
+            else:
+                db.session.add(models.NflPlayer(row[1], t, [x for x in positions if x.code ==
+                    row[3]], row[14]))
     db.session.commit()
 
 if __name__ == '__main__':
