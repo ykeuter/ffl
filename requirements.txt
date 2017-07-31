@@ -1,6 +1,5 @@
 alembic==0.9.2
 click==6.7
--e git+git@gitlab.com:ykeuter/ffl.git@7273a3de46bb34b29d530fcb90e1891221b1bcde#egg=ffl
 Flask==0.12.2
 Flask-Migrate==2.0.4
 Flask-Script==2.0.5
