@@ -6,6 +6,7 @@ playerPosition = db.Table('nfl_player_position',
 
 class NflPlayer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    espn_id = db.Column(db.Integer)
     name = db.Column(db.String(64))
     team_id = db.Column(db.Integer, db.ForeignKey('nfl_team.id'))
     projected_points = db.Column(db.Float)
@@ -13,7 +14,8 @@ class NflPlayer(db.Model):
     positions =  db.relationship('Position', secondary=playerPosition,
             backref='players')
 
-    def __init__(self, name, team, positions, points):
+    def __init__(self, id, name, team, positions, points):
+        self.espn_id = id
         self.name = name
         self.team = team
         self.positions = positions
@@ -37,21 +39,21 @@ class NflGame(db.Model):
 class NflTeam(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32))
-    espn_name = db.Column(db.String(32))
-    fs_name = db.Column(db.String(32))
+    espn_code = db.Column(db.String(32))
+    espn_id = db.Column(db.Integer)
     bye_week = db.Column(db.Integer)
     projected_defense_points = db.Column(db.Float)
 
-    def __init__(self, name, espn_name, fs_name):
+    def __init__(self, id, code, name):
+        self.espn_id = id
+        self.espn_code = code
         self.name = name
-        self.espn_name = espn_name
-        self.fs_name = fs_name
 
 class Position(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.String(8))
+    espn_code = db.Column(db.String(8))
     name = db.Column(db.String(32))
 
     def __init__(self, code, name):
         self.name = name
-        self.code = code
+        self.espn_code = code

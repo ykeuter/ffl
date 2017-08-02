@@ -9,5 +9,6 @@ else:
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 POSITIONS_FILE = "data/positions.csv"
 TEAMS_FILE = "data/teams.csv"
-PROJECTIONS_FILE = "data/projections.csv"
+#PROJECTIONS_FILE = "data/projections.csv"
+PLAYERS_URL = "http://games.espn.com/ffl/tools/projections?leagueId=438192"
 SCHEDULE_FILE = "data/schedule.csv"

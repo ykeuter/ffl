@@ -1,6 +1,10 @@
-from flask import Flask
-app = Flask(__name__)
+import requests
+from bs4 import BeautifulSoup
 
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
+url = "http://games.espn.com/ffl/tools/projections"
+
+page = requests.get(url)
+
+soup = BeautifulSoup(page.content, "lxml")
+
+p = soup.select("tr.pncPlayerRow td.playertablePlayerName")[0]

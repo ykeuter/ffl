@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 9edb2c892b44
+Revision ID: fb10c67d69df
 Revises: 
-Create Date: 2017-07-28 19:28:30.056571
+Create Date: 2017-08-02 18:37:45.619921
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9edb2c892b44'
+revision = 'fb10c67d69df'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,15 +21,15 @@ def upgrade():
     op.create_table('nfl_team',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=32), nullable=True),
-    sa.Column('espn_name', sa.String(length=32), nullable=True),
-    sa.Column('fs_name', sa.String(length=32), nullable=True),
+    sa.Column('espn_code', sa.String(length=32), nullable=True),
+    sa.Column('espn_id', sa.Integer(), nullable=True),
     sa.Column('bye_week', sa.Integer(), nullable=True),
     sa.Column('projected_defense_points', sa.Float(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('position',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('code', sa.String(length=8), nullable=True),
+    sa.Column('espn_code', sa.String(length=8), nullable=True),
     sa.Column('name', sa.String(length=32), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
@@ -44,6 +44,7 @@ def upgrade():
     )
     op.create_table('nfl_player',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('espn_id', sa.Integer(), nullable=True),
     sa.Column('name', sa.String(length=64), nullable=True),
     sa.Column('team_id', sa.Integer(), nullable=True),
     sa.Column('projected_points', sa.Float(), nullable=True),

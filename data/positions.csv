@@ -5,5 +5,7 @@ WR,Wide receiver
 K,Kicker
 TE,Tight end
 LB,Linebacker
-DB,Defensive back
-DL,Defensive lineman
+DE,Defensive end
+EDR,Edge rusher
+DT,Defensive tackle
+S,Safety
