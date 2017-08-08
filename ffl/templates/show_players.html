@@ -1,10 +1,40 @@
 {% extends "layout.html" %}
-{% block body %}
-  <ul class=players>
-  {% for p in players %}
-  <li><h2>{{ p.name }}</h2>{{ p.team.name }} {{p.projected_points}}
-  {% else %}
-    <li><em>Unbelievable. No players here so far!</em>
-  {% endfor %}
-  </ul>
+{% block main %}
+<section class="hero is-primary"><div class="hero-head"><div class="container">
+  <div class="breadcrumb is-medium">
+    <ul>
+      <li><a href="{{ url_for('index') }}">PICK6</a></li>
+      {% for i in breadcrumbs %}
+        <li class="is-active"><a>{{ i }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+</div></div></section>
+
+<section class="section">
+  <div class="container"><div class="columns is-multiline">
+    {% for category, href, ps in players %}
+      <div class="column is-3"><div class="card">
+        <header class="card-header">
+          <p class="card-header-title">
+            <a href="{{ href }}">{{ category }}</a>
+          </p>
+        </header>
+        <div class="card-content">
+          <table class="table is-fullwidth">
+            <tr><th>Name</th><th>Pts</th></tr>
+            {% for p in ps %}
+              <tr>
+                <td>{{ p.name }}</td>
+                <td class="has-text-right">{{ p.projected_points }}</td>
+              </tr>
+            {% else %}
+              <tr><th colspan=2 class="has-text-centered">No players loaded.</th></tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div></div>
+    {% endfor %}
+  </div></div>
+</section>
 {% endblock %}

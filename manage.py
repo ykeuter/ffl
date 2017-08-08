@@ -47,7 +47,8 @@ def load_data():
     with open(app.config['POSITIONS_FILE']) as f:
         r = csv.reader(f)
         r.next()
-        positions = [models.Position(row[0], row[1]) for row in r]
+        positions = [models.Position(espn_code=row[0], 
+            name=row[1], order=row[2]) for row in r]
         for p in positions:
             db.session.add(p)
     db.session.commit()

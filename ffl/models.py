@@ -53,7 +53,7 @@ class Position(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     espn_code = db.Column(db.String(8))
     name = db.Column(db.String(32))
+    order = db.Column(db.Integer)
 
-    def __init__(self, code, name):
-        self.name = name
-        self.espn_code = code
+class UserEmail(db.Model):
+    email = db.Column(db.String(128), primary_key=True)

@@ -1,11 +1,11 @@
-code,name
-QB,Quarterback
-RB,Running back
-WR,Wide receiver
-K,Kicker
-TE,Tight end
-LB,Linebacker
-DE,Defensive end
-EDR,Edge rusher
-DT,Defensive tackle
-S,Safety
+code,name,order
+QB,Quarterback,1
+RB,Running back,2
+WR,Wide receiver,3
+K,Kicker,10
+TE,Tight end,4
+LB,Linebacker,7
+DE,Defensive end,6
+EDR,Edge rusher,8
+DT,Defensive tackle,5
+S,Safety,9

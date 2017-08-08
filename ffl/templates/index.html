@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block main %}
+<section class="hero is-primary">
+  <div class="hero-body"><div class="container">
+    <h1 class="title is-1 is-spaced">
+      Welcome to PICK6!
+    </h1>
+    <p class="subtitle is-3">
+      PICK6 is <strong>yet another</strong> website providing stats and analysis for
+      <strong>Fantasy Football</strong> players.
+      <br><br>
+      <em>Why?</em>
+      <br>
+      Because we think we can do it <strong>still better</strong> than
+      all the others.
+      <br><br>
+      <em>You don't believe us?</em>
+      <br>
+      Check out this website regularly and see for yourself!
+      <br><br>
+      Even better:
+      <br>
+      leave us <strong>your email below</strong> and we will keep you
+      up-to-date on any new developments.
+    </p>
+    <form action="{{ url_for('addEmail') }}" method="POST">
+      <div class="field has-addons">
+        <div class="control has-icons-left">
+          <input class="input" type="email" name="email" placeholder="example@domain.com">
+          <span class="icon is-small is-left">
+            <i class="fa fa-envelope"></i>
+          </span>
+        </div>
+        <div class="control">
+          <button class="button is-info">Subscribe</button>
+        </div>
+      </div>
+    </form>
+  </div></div>
+</section>
+{% endblock %}
