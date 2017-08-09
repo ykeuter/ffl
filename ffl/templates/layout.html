@@ -8,13 +8,14 @@
       "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href=
       "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.5.0/css/bulma.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='fav.ico') }}">
   </head>
   <body>
     <div class="container">
     <nav class="navbar">
       <div class="navbar-brand">
       <a class="navbar-item" href="{{ url_for('index') }}">
-      <strong>PICK6</strong>
+        <img src="{{ url_for('static', filename='pick6_klein.png') }}">
       </a>
       <div class="navbar-burger"
         onclick="this.classList.toggle('is-active');
