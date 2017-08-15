@@ -50,3 +50,7 @@ def addEmail():
     flash('Your email address ' + request.form['email'] +
       ' was successfully added to our mailing list.')
     return redirect(url_for('index'))
+
+@app.route('/draft')
+def showDraft():
+   
