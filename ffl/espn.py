@@ -6,8 +6,13 @@ DEF_STRING = "D/ST"
 FA_STRING = "FA"
 NULL_PTS_STRING = "--"
 
+DRAFT_INIT_URL = ""
 DRAFT_URL = ""
 TEAM_ID = 4
+SWID = "{CC149C77-114B-4187-92A1-5F3CBE26117D}"
+ESPN_S2 =
+"EA7Zo5rL3oSuUsjz7PLUa3wGqx03ZYKZ2g0PhY04qEe2EjQUTevsn%2B6qK6MSUuM%2FUeUkaBJJ5rc55v1%2FPm%2FjQUCzn3n%2FJ4GW2D%2Fp8jM%2BIg2wExHp9AcxrN%2BFMQ6x3f%2FRLGuyT3Af%2BevDgWBj%2BRnVjK17RT9L8WerF%2FS0ZL%2FKtGQWf4r6o9inwnCC7Ankzci7x1s1vIMD%2FQ%2FsJ56cIvNpxV%2F5SuybvQhvYprPseMGWWM8UUjnaMND%2B%2BwFvP67oeMJnX%2FfvuYyQdged576Nq%2B9kni"
+LEAGUE_ID = 0
 
 def update_projections():
     teams = models.NflTeam.query.all()
@@ -92,3 +97,7 @@ def getDraft():
                 pl = next((x for x in players if x.espn_id == id), None)
  
 
+
+https://ha.registerdisney.go.com/jgc/v5/client/ESPN-ESPNCOM-PROD/guest/login?langPref=en-US
+
+{loginValue: "ykeuter@me.com", password: "TP!@8nRZBD2a"}

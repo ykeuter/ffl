@@ -53,4 +53,13 @@ def addEmail():
 
 @app.route('/draft')
 def showDraft():
-   
+    if not 'token' in session:
+        token, order = espn.initDraft()
+        session['token'] = token
+        session['order'] = order
+    picks, index = espn.getDraft(session['token'])
+    players = models.NflPlayer.query.all()
+    players = [(p.espn_id, p.name, p.team, [pos.espn_code for pos in
+        p.positions]) for p in players]
+
+

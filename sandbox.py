@@ -1,10 +1,17 @@
 import requests
 from bs4 import BeautifulSoup
 
-url = "http://games.espn.com/ffl/tools/projections"
+api_url = \
+    "https://registerdisney.go.com/jgc/v5/client/ESPN-ESPNCOM-PROD/api-key?langPref=en-US"
+login_url = \
+    "https://ha.registerdisney.go.com/jgc/v5/client/ESPN-ESPNCOM-PROD/guest/login?langPref=en-US"
 
-page = requests.get(url)
+login_json = '{"loginValue": "ykeuter@me.com", "password": "TP!@8nRZBD2a"}'
 
-soup = BeautifulSoup(page.content, "lxml")
+s = requests.Session()
 
-p = soup.select("tr.pncPlayerRow td.playertablePlayerName")[0]
+# soup = BeautifulSoup(page.content, "lxml")
+
+# p = soup.select("tr.pncPlayerRow td.playertablePlayerName")[0]
+
+
