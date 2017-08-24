@@ -1,4 +1,4 @@
-from ffl import app, db, models
+from ffl import app, db, models, espn
 from flask import render_template, session, flash, redirect, url_for, request
 
 @app.route('/team/<team_code>')
@@ -54,12 +54,17 @@ def addEmail():
 @app.route('/draft')
 def showDraft():
     if not 'token' in session:
-        token, order = espn.initDraft()
+        return espn.initDraft()
+        token, teams, order = espn.initDraft()
         session['token'] = token
+        session['teams'] = teams
         session['order'] = order
-    picks, index = espn.getDraft(session['token'])
-    players = models.NflPlayer.query.all()
-    players = [(p.espn_id, p.name, p.team, [pos.espn_code for pos in
-        p.positions]) for p in players]
-
+    token = session['token']
+    teams = session['teams']
+    order = session['order']
+    picks, index = espn.getDraft(token)
+    print index
+    print teams
+    print order
+    return teams[order[index]].teamAbbrev if index < len(order) else "FINISHED"
 
