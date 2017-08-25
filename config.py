@@ -15,7 +15,7 @@ SCHEDULE_FILE = "data/schedule.csv"
 DRAFT_INIT_URL = \
     "http://games.espn.com/ffl/htmldraft?leagueId={}&teamId={}&fromTeamId={}"
 DRAFT_UPDATE_URL = \
-    "http://ffl.draft.espn.com/league-{}/extdraft/json/JOIN?1={}&2={}&3={}&4={}"
+    "http://ffl.draft.espn.com/league-{}/extdraft/json/JOIN?1={}&2={}&3={}&4={}&5={}&poll=0"
 ESPN_LOGIN_URL = \
     "https://ha.registerdisney.go.com/jgc/v5/client/ESPN-ESPNCOM-PROD/guest/login?langPref=en-US"
 ESPN_APIKEY_URL = \

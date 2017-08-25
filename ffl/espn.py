@@ -13,8 +13,8 @@ SWID = "{CC149C77-114B-4187-92A1-5F3CBE26117D}"
 ESPN_S2 = \
     "AEA7Zo5rL3oSuUsjz7PLUa3wGqx03ZYKZ2g0PhY04qEe2EjQUTevsn%2B6qK6MSUuM%2FUeUkaBJJ5rc55v1%2FPm%2FjQUCzn3n%2FJ4GW2D%2Fp8jM%2BIg2wExHp9AcxrN%2BFMQ6x3f%2FRLGuyT3Af%2BevDgWBj%2BRnVjK17RT9L8WerF%2FS0ZL%2FKtGQWf4r6o9inwnCC7Ankzci7x1s1vIMD%2FQ%2FsJ56cIvNpxV%2F5SuybvQhvYprPseMGWWM8UUjnaMND%2B%2BwFvP67oeMJnX%2FfvuYyQdged576Nq%2B9kni"
 
-LEAGUE_ID = 1427978
-TEAM_ID = 6
+LEAGUE_ID = 1497129
+TEAM_ID = 2
 
 def update_projections():
     teams = models.NflTeam.query.all()
@@ -79,7 +79,8 @@ def getDraft(token):
     url = app.config['DRAFT_UPDATE_URL'].format(args[1], args[0], args[1],
             args[2], args[3], token)
     page = requests.get(url, cookies=dict(SWID=SWID, espn_s2=ESPN_S2))
-    data = re.search(r'draft.processMessage\(({"token":.*?})\);', page.content)
+    data = re.search(r'draft.processMessage\(({"token":.*?})\);',
+            page.content).group(1)
     data = demjson.decode(data)
     picks = [pick['player']['playerId'] for pick in data['pickHistory']]
     index = data['draftStatus']['currentSelectionId']

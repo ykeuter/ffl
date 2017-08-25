@@ -54,7 +54,6 @@ def addEmail():
 @app.route('/draft')
 def showDraft():
     if not 'token' in session:
-        return espn.initDraft()
         token, teams, order = espn.initDraft()
         session['token'] = token
         session['teams'] = teams
@@ -63,8 +62,5 @@ def showDraft():
     teams = session['teams']
     order = session['order']
     picks, index = espn.getDraft(token)
-    print index
-    print teams
-    print order
-    return teams[order[index]].teamAbbrev if index < len(order) else "FINISHED"
+    return teams[order[index] - 1]["teamAbbrev"] if index < len(order) else "FINISHED"
 
