@@ -54,7 +54,7 @@ def addEmail():
 @app.route('/draft')
 def showDraft():
     NONE_STRING = "--"
-    ITERMAX = 200
+    ITERMAX = 250
 
     nflteams = models.NflTeam.query.order_by(models.NflTeam.name).all()
     positions = models.Position.query.order_by(models.Position.order).all()

@@ -1,6 +1,6 @@
 import os
 
-DEBUG = True
+# DEBUG = True
 SECRET_KEY = 'ro6W6BTzPw29'
 if os.environ.get('DATABASE_URL') is None:
     SQLALCHEMY_DATABASE_URI = "postgresql://postgres:7tiR9H0NR7Bq@localhost/ffl"

@@ -15,7 +15,8 @@ def getFreeAgents():
     fa = [FreeAgent(p.espn_id, p.name,
         p.team.espn_code if p.team else FA_STRING,
         [pos.espn_code for pos in p.positions],
-        p.projected_points) for p in models.NflPlayer.query.all()]
+        p.projected_points) for p in models.NflPlayer.query.all() if
+        p.projected_points is not None]
     fa += [FreeAgent(t.espn_id, t.name, t.espn_code, [DEF_STRING],
         t.projected_defense_points) for t in
         models.NflTeam.query.all()]
@@ -67,24 +68,24 @@ class GameState:
     def GetResult(self, playerjm):
         """ Get the game result from the viewpoint of playerjm.
         """
-        WEIGHTS_POS = [(["QB"], .7),
+        WEIGHTS_POS = [(["QB"], .6),
                        (["WR"], .7),
                        (["WR"], .7),
                        (["RB"], .7),
                        (["RB"], .7),
                        (["TE"], .6),
                        (["RB", "WR", "TE"], .6),
-                       (["EDR"], .6),
-                       (["D"], .7),
-                       (["K"], .6),
-                       (["QB"], .3),
+                       (["EDR"], .5),
+                       (["D"], .6),
+                       (["K"], .5),
+                       (["QB"], .4),
                        (["WR"], .4),
                        (["RB"], .4),
                        (["TE"], .4),
                        (["RB", "WR", "TE"], .4),
-                       (["EDR"], .4),
+                       (["EDR"], .2),
                        (["D"], .3),
-                       (["K"], .4),
+                       (["K"], .2),
                        (["WR"], .2),
                        (["RB"], .2)]
 

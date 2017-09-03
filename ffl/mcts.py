@@ -109,7 +109,7 @@ def UCTPlayGame(state):
     while (state.GetMoves() != []):
         # print str(state)
         # if state.playerJustMoved == 1:
-        m, _ = UCT(rootstate = state, itermax = 100, verbose = False) # play with values for itermax and verbose = True
+        m, _ = UCT(rootstate = state, itermax = 250, verbose = False) # play with values for itermax and verbose = True
         # else:
         #     m = UCT(rootstate = state, itermax = 100, verbose = False)
         print "Best Move: " + str(m) + "\n"
