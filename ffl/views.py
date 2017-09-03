@@ -1,4 +1,4 @@
-from ffl import app, db, models, espn
+from ffl import app, db, models, espn, draft, mcts
 from flask import render_template, session, flash, redirect, url_for, request
 
 @app.route('/team/<team_code>')
@@ -53,14 +53,43 @@ def addEmail():
 
 @app.route('/draft')
 def showDraft():
-    if not 'token' in session:
+    NONE_STRING = "--"
+    ITERMAX = 200
+
+    nflteams = models.NflTeam.query.order_by(models.NflTeam.name).all()
+    positions = models.Position.query.order_by(models.Position.order).all()
+
+    if not 'draftToken' in session:
         token, teams, order = espn.initDraft()
-        session['token'] = token
-        session['teams'] = teams
-        session['order'] = order
-    token = session['token']
-    teams = session['teams']
-    order = session['order']
+        session['draftToken'] = token
+        session['draftTeams'] = teams
+        session['draftOrder'] = order
+    token = session['draftToken']
+    teams = session['draftTeams']
+    order = session['draftOrder']
+
     picks, index = espn.getDraft(token)
-    return teams[order[index] - 1]["teamAbbrev"] if index < len(order) else "FINISHED"
+    fa = draft.getFreeAgents()
+    latestPick = next(p.name for p in fa if p.espn_id == picks[-1]['playerId']) \
+            if picks else NONE_STRING
+    nextTeam = teams[order[index]]["teamAbbrev"] \
+            if index < len(order) else NONE_STRING
+
+    rosters = [[] for _ in teams]
+    turns = order[index:]
+    state = draft.GameState(rosters, turns, fa)
+    for pick in picks:
+        player = next(p for p in fa if p.espn_id == pick['playerId'])
+        state.PickFreeAgent(pick['teamId'], player)
+
+    if request.args.get('analyze'):
+        _, nodes = mcts.UCT(state, ITERMAX)
+        rankings = [(n.move, "[S/V: " + "{:.2f}".format(n.score / n.visits) + " | V: " +
+            str(n.visits) + "]") for n in nodes]
+    else:
+        rankings = [(m, None) for m in state.GetMoves()]
+
+    return render_template('draft.html', latestPick=latestPick,
+            nextTeam=nextTeam, freeagents=fa, rankings=rankings, teams=nflteams,
+            positions=positions)
 

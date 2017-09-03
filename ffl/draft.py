@@ -1,16 +1,31 @@
+from ffl import models
+
 class FreeAgent:
     def __init__(self, id, name, team, positions, points):
-        self.id = id
+        self.espn_id = id
         self.name = name
         self.team = team
         self.positions = positions
         self.points = points
 
+def getFreeAgents():
+    FA_STRING = "FA"
+    DEF_STRING = "D"
+
+    fa = [FreeAgent(p.espn_id, p.name,
+        p.team.espn_code if p.team else FA_STRING,
+        [pos.espn_code for pos in p.positions],
+        p.projected_points) for p in models.NflPlayer.query.all()]
+    fa += [FreeAgent(t.espn_id, t.name, t.espn_code, [DEF_STRING],
+        t.projected_defense_points) for t in
+        models.NflTeam.query.all()]
+    return sorted(fa, key=lambda p: -p.points)
+
 class GameState:
     def __init__(self, rosters, turns, freeagents, playerjm=None):
         self.rosters = rosters
         self.turns = turns
-        self.freeagents = sorted(freeagents, key=lambda p: -p.points)
+        self.freeagents = freeagents
         self.playerJustMoved = playerjm
 
     def Clone(self):
@@ -21,25 +36,29 @@ class GameState:
                 self.playerJustMoved)
         return st
 
+    def PickFreeAgent(self, rosterId, player):
+        self.rosters[rosterId].append(player)
+        self.freeagents.remove(player)
+
     def DoMove(self, move):
         """ Update a state by carrying out the given move.
             Must update playerJustMoved.
         """
-        pick = next(p for p in self.freeagents if move in p.positions)
-        player = self.turns.pop(0)
-        self.rosters[player].append(pick)
-        self.freeagents.remove(pick)
-        self.playerJustMoved = player
+        player = next(p for p in self.freeagents if move in p.positions)
+        rosterId = self.turns.pop(0)
+        self.PickFreeAgent(rosterId, player)
+        self.playerJustMoved = rosterId
 
     def GetMoves(self):
         """ Get all possible moves from this state.
         """
-        MAX_POS = {"QB": 3, "WR": 8, "RB": 8, "TE": 2, "EDR": 2, "D": 2, "K": 2}
+        MAX_POS = [("QB", 3), ("WR", 8), ("RB", 8), ("TE", 2), ("EDR", 2),
+                ("D", 2), ("K", 2)]
 
         if len(self.turns) == 0: return []
 
         roster = self.rosters[self.turns[0]]
-        moves = [k for (k, v) in MAX_POS.iteritems() if len([p for p in roster if (k in
+        moves = [k for (k, v) in MAX_POS if len([p for p in roster if (k in
             p.positions)]) < v]
         # moves2 = reduce(set.union, [p.positions for p in self.freeagents], set())
         # moves = set(moves).intersection(moves2)

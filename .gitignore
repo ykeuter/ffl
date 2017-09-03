@@ -7,3 +7,4 @@ venv
 ffl.egg-info
 *.swp
 .~lock.*
+.DS_Store

@@ -18,7 +18,7 @@ class Node:
             lambda c: c.wins/c.visits + UCTK * sqrt(2*log(self.visits)/c.visits to vary the amount of
             exploration versus exploitation.
         """
-        UCTK = 10
+        UCTK = 200
         s = sorted(self.childNodes, key = lambda c: c.score/c.visits + UCTK *
                 math.sqrt(2*math.log(self.visits)/c.visits))[-1]
         return s
@@ -96,7 +96,8 @@ def UCT(rootstate, itermax, verbose = False):
     if (verbose): print rootnode.TreeToString(0)
     # else: print rootnode.ChildrenToString()
 
-    return sorted(rootnode.childNodes, key = lambda c: c.score / c.visits)[-1].move
+    nodes = sorted(rootnode.childNodes, key = lambda c: -c.score / c.visits)
+    return nodes[0].move if nodes else None, nodes
 
 def UCTPlayGame(state):
     """ Play a sample game between two UCT players where each player gets a different number
@@ -108,7 +109,7 @@ def UCTPlayGame(state):
     while (state.GetMoves() != []):
         # print str(state)
         # if state.playerJustMoved == 1:
-        m = UCT(rootstate = state, itermax = 100, verbose = False) # play with values for itermax and verbose = True
+        m, _ = UCT(rootstate = state, itermax = 100, verbose = False) # play with values for itermax and verbose = True
         # else:
         #     m = UCT(rootstate = state, itermax = 100, verbose = False)
         print "Best Move: " + str(m) + "\n"
@@ -121,21 +122,14 @@ def UCTPlayGame(state):
     return state
 
 if __name__ == "__main__":
-    """ Play a single game to the end using UCT for both players. 
+    """ Play a single game to the end using UCT for both players.
     """
-    from ffl import models, draft
+    from ffl import draft
 
     NUM = 8
     SIZE = 10
-    FA_STRING = "FA"
-    DEF_STRING = "D"
-    fa = [draft.FreeAgent(p.espn_id, p.name,
-        p.team.espn_code if p.team else FA_STRING,
-        [pos.espn_code for pos in p.positions],
-        p.projected_points) for p in models.NflPlayer.query.all()]
-    fa += [draft.FreeAgent(t.espn_id, t.name, t.espn_code, [DEF_STRING],
-        t.projected_defense_points) for t in
-        models.NflTeam.query.all()]
+
+    fa = draft.getFreeAgents()
     rosters = [[] for _ in range(NUM)]
     turns = []
     for i in range(SIZE):
