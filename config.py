@@ -10,7 +10,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 POSITIONS_FILE = "data/positions.csv"
 TEAMS_FILE = "data/teams.csv"
 #PROJECTIONS_FILE = "data/projections.csv"
-PLAYERS_URL = "http://games.espn.com/ffl/tools/projections?leagueId=438192"
+PLAYERS_URL = "http://games.espn.com/ffl/tools/projections?leagueId=0"
 SCHEDULE_FILE = "data/schedule.csv"
 DRAFT_INIT_URL = \
     "http://games.espn.com/ffl/htmldraft?leagueId={}&teamId={}&fromTeamId={}"

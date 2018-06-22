@@ -8,3 +8,4 @@ ffl.egg-info
 *.swp
 .~lock.*
 .DS_Store
+.ipynb_checkpoints/
