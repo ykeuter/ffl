@@ -93,7 +93,7 @@ def UCT(rootstate, itermax, verbose = False):
             node = node.parentNode
 
     # Output some information about the tree - can be omitted
-    if (verbose): print rootnode.TreeToString(0)
+    if (verbose): print(rootnode.TreeToString(0))
     # else: print rootnode.ChildrenToString()
 
     nodes = sorted(rootnode.childNodes, key = lambda c: -c.score / c.visits)
@@ -112,7 +112,7 @@ def UCTPlayGame(state):
         m, _ = UCT(rootstate = state, itermax = 250, verbose = False) # play with values for itermax and verbose = True
         # else:
         #     m = UCT(rootstate = state, itermax = 100, verbose = False)
-        print "Best Move: " + str(m) + "\n"
+        print("Best Move: " + str(m) + "\n")
         state.DoMove(m)
     # if state.GetResult(state.playerJustMoved) == 1.0:
     #     print "Player " + str(state.playerJustMoved) + " wins!"

@@ -1,11 +1,11 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # DEBUG = True
 SECRET_KEY = 'ro6W6BTzPw29'
-if os.environ.get('DATABASE_URL') is None:
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:7tiR9H0NR7Bq@localhost/ffl"
-else:
-    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+SQLALCHEMY_DATABASE_URI = os.environ['FFL_DB_URL']
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 POSITIONS_FILE = "data/positions.csv"
 TEAMS_FILE = "data/teams.csv"
@@ -20,3 +20,7 @@ ESPN_LOGIN_URL = \
     "https://ha.registerdisney.go.com/jgc/v5/client/ESPN-ESPNCOM-PROD/guest/login?langPref=en-US"
 ESPN_APIKEY_URL = \
     "https://registerdisney.go.com/jgc/v5/client/ESPN-ESPNCOM-PROD/api-key?langPref=en-US"
+TEAM_ID = os.environ['FFL_TEAM_ID']
+LEAGUE_ID = os.environ['FFL_LEAGUE_ID']
+SWID = os.environ['FFL_SWID']
+ESPN_S2 = os.environ['FFL_ESPN_S2']

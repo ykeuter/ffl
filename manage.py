@@ -16,7 +16,7 @@ def delete_data():
     models.NflGame.query.delete()
     models.NflTeam.query.delete()
     db.session.commit()
-    print "Deleted all data."
+    print("Deleted all data.")
 
 @manager.command
 def update_projections():
@@ -72,7 +72,7 @@ def load_data():
 #                    row[3]], row[14]))
 #    db.session.commit()
 
-    print "Loaded all reference data."
+    print("Loaded all reference data.")
 
 if __name__ == '__main__':
     manager.run()

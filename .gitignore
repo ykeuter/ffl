@@ -3,7 +3,8 @@
 .RData
 .Ruserdata
 *.pyc
-venv
+.venv/
+.env
 ffl.egg-info
 *.swp
 .~lock.*
