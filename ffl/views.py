@@ -11,9 +11,11 @@ def showPlayersByTeam(team_code):
     players = models.NflPlayer.query.\
             filter(models.NflPlayer.team == team).\
             order_by(models.NflPlayer.projected_points.desc())
-    players = map(lambda pos: (pos.name, url_for('showPlayersByPosition',
-        pos_code=pos.espn_code), [p for p in players if pos in
-        p.positions]), positions)
+    players = [(
+                    pos.name,
+                    url_for('showPlayersByPosition', pos_code=pos.espn_code),
+                    [p for p in players if pos in p.positions]
+                ) for pos in positions]
 
     return render_template('show_players.html', players=players,
             teams=teams, positions=positions,
@@ -29,8 +31,11 @@ def showPlayersByPosition(pos_code):
     players = models.NflPlayer.query.\
             filter(models.NflPlayer.positions.contains(position)).\
             order_by(models.NflPlayer.projected_points.desc())
-    players = map(lambda t: (t.name, url_for('showPlayersByTeam',
-        team_code=t.espn_code), [p for p in players if p.team is t]), teams)
+    players = [(
+                    t.name,
+                    url_for('showPlayersByTeam', team_code=t.espn_code),
+                    [p for p in players if p.team is t]
+                ) for t in teams]
 
     return render_template('show_players.html', players=players,
             teams=teams, positions=positions,
@@ -54,7 +59,7 @@ def addEmail():
 @app.route('/draft')
 def showDraft():
     NONE_STRING = "--"
-    ITERMAX = 250
+    ITERMAX = int(app.config['ITERMAX'])
 
     nflteams = models.NflTeam.query.order_by(models.NflTeam.name).all()
     positions = models.Position.query.order_by(models.Position.order).all()

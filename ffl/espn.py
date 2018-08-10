@@ -19,7 +19,7 @@ def update_projections():
 
     for p in players: p.projected_points = None
 
-    url = app.config["PLAYERS_URL"]
+    url = app.config["PLAYERS_URL"].format(LEAGUE_ID)
     while url:
 #        print "Processing " + url + "..."
         page = requests.get(url)
@@ -42,8 +42,8 @@ def update_projections():
                 else:
                     team = next(x for x in teams
                             if x.espn_code == details[1].upper())
-                pos = map(lambda s: next(p for p in positions
-                    if s.strip() == p.espn_code), details[2].split(","))
+                pos = [next(p for p in positions if s.strip() == p.espn_code)
+                    for s in details[2].split(",")]
                 pl = next((x for x in players if x.espn_id == id), None)
                 if pl == None:
                     pl = models.NflPlayer(id, name, team, pos, pts)
@@ -63,7 +63,7 @@ def update_projections():
 def initDraft():
     url = app.config['DRAFT_INIT_URL'].format(LEAGUE_ID, TEAM_ID, TEAM_ID)
     page = requests.get(url, cookies=dict(SWID=SWID, espn_s2=ESPN_S2))
-    soup = BeautifulSoup(page.content, "lxml")
+    soup = BeautifulSoup(page.text, "lxml")
     js = soup.body.find("script").string
     data = re.search(r"var draftleagueData = ({.*?});$", js, re.MULTILINE |
             re.DOTALL).group(1)
@@ -77,7 +77,7 @@ def getDraft(token):
             args[2], args[3], token)
     page = requests.get(url, cookies=dict(SWID=SWID, espn_s2=ESPN_S2))
     data = re.search(r'draft.processMessage\(({"token":.*?})\);',
-            page.content).group(1)
+            page.text).group(1)
     data = demjson.decode(data)
     picks = [{'playerId': pick['player']['playerId'],
         'teamId': pick['teamId'] - 1} for pick in data['pickHistory']]

@@ -26,27 +26,27 @@ def update_projections():
 def load_data():
     with open(app.config['TEAMS_FILE']) as f:
         r = csv.reader(f)
-        r.next()
+        next(r)
         teams = [models.NflTeam(int(row[2]), row[1], row[0]) for row in r]
     for t in teams:
         db.session.add(t)
     db.session.commit()
 
-    BYE_STRING = "BYE"
-    with open(app.config['SCHEDULE_FILE']) as f:
-        r = csv.reader(f)
-        r.next()
-        for row in r:
-            home = next(x for x in teams if x.espn_code == row[0])
-            home.bye_week = row.index(BYE_STRING)
-            for i in xrange(1, len(row)):
-                away = next((x for x in teams if x.espn_code == row[i]), None)
-                if away != None: db.session.add(models.NflGame(home, away, i))
-    db.session.commit()
+    # BYE_STRING = "BYE"
+    # with open(app.config['SCHEDULE_FILE']) as f:
+    #     r = csv.reader(f)
+    #     r.next()
+    #     for row in r:
+    #         home = next(x for x in teams if x.espn_code == row[0])
+    #         home.bye_week = row.index(BYE_STRING)
+    #         for i in xrange(1, len(row)):
+    #             away = next((x for x in teams if x.espn_code == row[i]), None)
+    #             if away != None: db.session.add(models.NflGame(home, away, i))
+    # db.session.commit()
 
     with open(app.config['POSITIONS_FILE']) as f:
         r = csv.reader(f)
-        r.next()
+        next(r)
         positions = [models.Position(espn_code=row[0],
             name=row[1], order=row[2]) for row in r]
         for p in positions:

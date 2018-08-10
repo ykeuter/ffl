@@ -1,11 +1,24 @@
 from ffl import models
+import numpy as np
 
 class FreeAgent:
     def __init__(self, id, name, team, positions, points):
+        pos_map = [
+                    ("DL", {"DE", "DT"}),
+                    ("DB", {"S", "CB"}),
+                    ("K", {"K"}),
+                    ("D", {"D"}),
+                    ("TE", {"TE"}),
+                    ("WR", {"WR"}),
+                    ("RB", {"RB"}),
+                    ("QB", {"QB"}),
+                  ]
         self.espn_id = id
         self.name = name
         self.team = team
         self.positions = positions
+        self.position = next(p for p, ps in pos_map
+            if set(positions).intersection(ps))
         self.points = points
 
 def getFreeAgents():
@@ -32,7 +45,7 @@ class GameState:
     def Clone(self):
         """ Create a deep clone of this game state.
         """
-        rosters = map(lambda r: r[:], self.rosters)
+        rosters = [r[:] for r in self.rosters]
         st = GameState(rosters, self.turns[:], self.freeagents[:],
                 self.playerJustMoved)
         return st
@@ -45,7 +58,7 @@ class GameState:
         """ Update a state by carrying out the given move.
             Must update playerJustMoved.
         """
-        player = next(p for p in self.freeagents if move in p.positions)
+        player = next(p for p in self.freeagents if move == p.position)
         rosterId = self.turns.pop(0)
         self.PickFreeAgent(rosterId, player)
         self.playerJustMoved = rosterId
@@ -53,58 +66,52 @@ class GameState:
     def GetMoves(self):
         """ Get all possible moves from this state.
         """
-        MAX_POS = [("QB", 3), ("WR", 8), ("RB", 8), ("TE", 2), ("EDR", 2),
-                ("D", 2), ("K", 2)]
+        pos_max = {"QB": 2, "WR": 6, "RB": 6, "TE": 2, "D": 2, "K": 1,
+            "DL": 1, "DB": 1}
 
         if len(self.turns) == 0: return []
 
-        roster = self.rosters[self.turns[0]]
-        moves = [k for (k, v) in MAX_POS if len([p for p in roster if (k in
-            p.positions)]) < v]
-        # moves2 = reduce(set.union, [p.positions for p in self.freeagents], set())
-        # moves = set(moves).intersection(moves2)
-        return list(moves)
+        roster_positions = np.array(
+            [p.position for p in self.rosters[self.turns[0]]], dtype=str)
+        moves = [pos for pos, max_ in pos_max.items() 
+            if np.sum(roster_positions == pos) < max_]
+        return moves
 
     def GetResult(self, playerjm):
         """ Get the game result from the viewpoint of playerjm.
         """
-        WEIGHTS_POS = [(["QB"], .6),
-                       (["WR"], .7),
-                       (["WR"], .7),
-                       (["RB"], .7),
-                       (["RB"], .7),
-                       (["TE"], .6),
-                       (["RB", "WR", "TE"], .6),
-                       (["EDR"], .5),
-                       (["D"], .6),
-                       (["K"], .5),
-                       (["QB"], .4),
-                       (["WR"], .4),
-                       (["RB"], .4),
-                       (["TE"], .4),
-                       (["RB", "WR", "TE"], .4),
-                       (["EDR"], .2),
-                       (["D"], .3),
-                       (["K"], .2),
-                       (["WR"], .2),
-                       (["RB"], .2)]
-
         if playerjm is None: return 0
+    
+        pos_wgts = {
+            ("QB"): [.6, .4],
+            ("WR"): [.7, .7, .4, .2],
+            ("RB"): [.7, .7, .4, .2],
+            ("TE"): [.6, .4],
+            ("RB", "WR", "TE"): [.6, .4],
+            ("D"): [.6, .3, .1],
+            ("K"): [.5, .2, .2, .1]
+        }
 
-        roster = sorted(self.rosters[playerjm], key=lambda p: -p.points)
-        res = 0
-        for (pos, w) in WEIGHTS_POS:
-            p = next((p for p in roster if set(p.positions).intersection(pos)), None)
-            if p:
-                points = p.points
-                roster.remove(p)
-            else:
-                ps = [p.points for p in self.freeagents if
-                        set(p.positions).intersection(pos)]
-                if len(ps) > 3: ps = ps[:3]
-                points = float(sum(ps)) / max(len(ps), 1)
-            res += points * w
-        return res
+        result = 0
+        # map the drafted players to the weights
+        for p in self.rosters[playerjm]:
+            max_wgt, _, max_pos, old_wgts = max(
+                ((wgts[0], len(lineup_pos), lineup_pos, wgts) 
+                    for lineup_pos, wgts in pos_wgts.items()
+                    if p.position in lineup_pos),
+                default=(0, 0, (), []))
+            if max_wgt > 0:
+                result += max_wgt * p.points
+                old_wgts.pop(0)
+                if not old_wgts:
+                    pos_wgts.pop(max_pos)
+                    
+        # map the remaining weights to the top three free agents
+        for pos, wgts in pos_wgts.items():
+            result += np.mean([p.points for p in self.freeagents 
+                if p.position in pos][:3]) * sum(wgts)
+            
+        return result
 
     def __repr__(self):
         """ Don't need this - but good style.
