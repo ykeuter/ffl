@@ -68,8 +68,7 @@ def initDraft():
     data = re.search(r"var draftleagueData = ({.*?});$", js, re.MULTILINE |
             re.DOTALL).group(1)
     data = demjson.decode(data)
-    return data["draftToken"], data["teams"], [x -  1 for x in
-            data["draftOrder"]]
+    return data["draftToken"], data["teams"], data["draftOrder"]
 
 def getDraft(token):
     args = token.split(":")
@@ -80,6 +79,6 @@ def getDraft(token):
             page.text).group(1)
     data = demjson.decode(data)
     picks = [{'playerId': pick['player']['playerId'],
-        'teamId': pick['teamId'] - 1} for pick in data['pickHistory']]
+        'teamId': pick['teamId']} for pick in data['pickHistory']]
     index = data['draftStatus']['currentSelectionId']
     return picks, index

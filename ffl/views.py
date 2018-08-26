@@ -73,19 +73,22 @@ def showDraft():
     teams = session['draftTeams']
     order = session['draftOrder']
 
+    def teamId2idx(id):
+        return next(idx for idx, team in enumerate(teams) if team['teamId'] == id)
+
     picks, index = espn.getDraft(token)
     fa = draft.getFreeAgents()
     latestPick = next(p.name for p in fa if p.espn_id == picks[-1]['playerId']) \
             if picks else NONE_STRING
-    nextTeam = teams[order[index]]["teamAbbrev"] \
+    nextTeam = teams[teamId2idx(order[index])]["teamAbbrev"] \
             if index < len(order) else NONE_STRING
 
     rosters = [[] for _ in teams]
-    turns = order[index:]
+    turns = [teamId2idx(id) for id in order[index:]]
     state = draft.GameState(rosters, turns, fa)
     for pick in picks:
         player = next(p for p in fa if p.espn_id == pick['playerId'])
-        state.PickFreeAgent(pick['teamId'], player)
+        state.PickFreeAgent(teamId2idx(pick['teamId']), player)
 
     if request.args.get('analyze'):
         _, nodes = mcts.UCT(state, ITERMAX)

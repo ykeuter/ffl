@@ -30,7 +30,7 @@
         <div class="card-content">
           <table class="table is-fullwidth">
             <tr><th>Name</th><th>Team</th><th>Pts</th></tr>
-            {% for p in freeagents if move in p.positions %}
+            {% for p in freeagents if move == p.position %}
               {% if loop.index <= 7 %}
               <tr>
                 <td>{{ p.name }}</td>
