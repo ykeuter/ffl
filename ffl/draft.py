@@ -66,7 +66,7 @@ class GameState:
     def GetMoves(self):
         """ Get all possible moves from this state.
         """
-        pos_max = {"QB": 2, "WR": 6, "RB": 6, "TE": 2, "D": 2, "K": 1,
+        pos_max = {"QB": 2, "WR": 5, "RB": 5, "TE": 2, "D": 2, "K": 1,
             "DL": 1, "DB": 1}
 
         if len(self.turns) == 0: return []
