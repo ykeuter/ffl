@@ -2,23 +2,10 @@ from ffl import app, db, models
 import requests, re, demjson
 from bs4 import BeautifulSoup
 
-DEF_STRING = "D/ST"
-FA_STRING = "FA"
-NULL_PTS_STRING = "--"
+SCORES_URL = "http://www.nfl.com/scores"
+BOXSCORE_URL = "http://www.nfl.com/widget/gc/2011/tabs/cat-post-boxscore?gameId={}"
 
-SWID = app.config['SWID']
-ESPN_S2 = app.config['ESPN_S2']
-
-LEAGUE_ID = app.config['LEAGUE_ID']
-TEAM_ID = app.config['TEAM_ID']
-
-PLAYERS_URL = "http://games.espn.com/ffl/tools/projections?leagueId={}"
-DRAFT_INIT_URL = \
-    "http://games.espn.com/ffl/htmldraft?leagueId={}&teamId={}&fromTeamId={}"
-DRAFT_UPDATE_URL = \
-    "http://ffl.draft.espn.com/league-{}/extdraft/json/JOIN?1={}&2={}&3={}&4={}&5={}&poll=0"
-
-def update_projections():
+def get_boxscores():
     teams = models.NflTeam.query.all()
     positions = models.Position.query.all()
     players = models.NflPlayer.query.all()
@@ -65,26 +52,3 @@ def update_projections():
         if url: url = url.parent["href"]
     db.session.commit()
     print("Updated all projections.")
-
-def initDraft():
-    url = DRAFT_INIT_URL.format(LEAGUE_ID, TEAM_ID, TEAM_ID)
-    page = requests.get(url, cookies=dict(SWID=SWID, espn_s2=ESPN_S2))
-    soup = BeautifulSoup(page.text, "lxml")
-    js = soup.body.find("script").string
-    data = re.search(r"var draftleagueData = ({.*?});$", js, re.MULTILINE |
-            re.DOTALL).group(1)
-    data = demjson.decode(data)
-    return data["draftToken"], data["teams"], data["draftOrder"]
-
-def getDraft(token):
-    args = token.split(":")
-    url = DRAFT_UPDATE_URL.format(args[1], args[0], args[1],
-            args[2], args[3], token)
-    page = requests.get(url, cookies=dict(SWID=SWID, espn_s2=ESPN_S2))
-    data = re.search(r'draft.processMessage\(({"token":.*?})\);',
-            page.text).group(1)
-    data = demjson.decode(data)
-    picks = [{'playerId': pick['player']['playerId'],
-        'teamId': pick['teamId']} for pick in data['pickHistory']]
-    index = data['draftStatus']['currentSelectionId']
-    return picks, index
