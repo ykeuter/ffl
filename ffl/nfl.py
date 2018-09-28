@@ -2,10 +2,25 @@ from ffl import app, db, models
 import requests, re, demjson
 from bs4 import BeautifulSoup
 
-SCORES_URL = "http://www.nfl.com/scores"
+URL = "http://www.nfl.com"
 BOXSCORE_URL = "http://www.nfl.com/widget/gc/2011/tabs/cat-post-boxscore?gameId={}"
 
 def get_boxscores():
+    page = requests.get(URL + "/scores")
+    soup = BeautifulSoup(page.content, "lxml")
+    years = soup.select("ol.year-selector a")
+    for y in years:
+        page = requests.get(URL + "/scores/{}/REG1".format(y.string))
+        soup = BeautifulSoup(page.content, "lxml")
+        weeks = soup.select("a.week-item")
+        for w in weeks:
+            page = requests.get(URL + w["href"])
+            soup = BeautifulSoup(page.content, "lxml")
+            games = soup.select("div[class='scorebox-wrapper']")
+            for g in games:
+                print(g.div["id"][9:])
+
+def get_boxscore(id):
     teams = models.NflTeam.query.all()
     positions = models.Position.query.all()
     players = models.NflPlayer.query.all()
