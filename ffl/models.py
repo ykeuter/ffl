@@ -4,6 +4,21 @@ playerPosition = db.Table('nfl_player_position',
         db.Column('player_id', db.Integer, db.ForeignKey('nfl_player.id')),
         db.Column('posiiton_id', db.Integer, db.ForeignKey('position.id')))
 
+class NflcomGame(db.Model):
+    id = db.Column(db.Interger, primary_key=True)
+    home_team = db.Column(db.String(32))
+    away_team = db.Column(db.String(32))
+
+class NflcomPassing(db.Model):
+    player_id = db.Column(db.String(32, primary_key=True))
+    game_id = db.Column(db.Integer, db.ForeignKey('nflcom_game.id'), primary_key=True)
+    player_name = db.Column(db.String(32))
+    cp = db.Column(db.Float)
+    at = db.Column(db.Float)
+    yds = db.Column(db.Float)
+    td = db.Column(db.Float)
+    int_ = db.Column(db.Float)
+
 class NflPlayer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     espn_id = db.Column(db.Integer)

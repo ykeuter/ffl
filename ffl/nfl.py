@@ -10,60 +10,37 @@ def get_boxscores():
     soup = BeautifulSoup(page.content, "lxml")
     years = soup.select("ol.year-selector a")
     for y in years:
-        page = requests.get(URL + "/scores/{}/REG1".format(y.string))
-        soup = BeautifulSoup(page.content, "lxml")
-        weeks = soup.select("a.week-item")
-        for w in weeks:
-            page = requests.get(URL + w["href"])
-            soup = BeautifulSoup(page.content, "lxml")
-            games = soup.select("div[class='scorebox-wrapper']")
-            for g in games:
-                print(g.div["id"][9:])
+        get_boxscore_per_year(y.string)
+
+def get_boxscore_per_year(year):
+    page = requests.get(URL + "/scores/{}/REG1".format(year))
+    soup = BeautifulSoup(page.content, "lxml")
+    weeks = soup.select("a.week-item")
+    for w in weeks:
+        get_boxscore_per_week(w["href"])
+        
+def get_boxscore_per_week(week):
+    page = requests.get(URL + week)
+    soup = BeautifulSoup(page.content, "lxml")
+    games = soup.select("div[class='scorebox-wrapper']")
+    for g in games:
+        print(g.div["id"][9:])
 
 def get_boxscore(id):
-    teams = models.NflTeam.query.all()
-    positions = models.Position.query.all()
-    players = models.NflPlayer.query.all()
-
-    for p in players: p.projected_points = None
-
-    url = PLAYERS_URL.format(LEAGUE_ID)
-    while url:
-#        print "Processing " + url + "..."
-        page = requests.get(url)
-        soup = BeautifulSoup(page.content, "lxml")
-
-        playerRows = soup.select("tr.pncPlayerRow")
-        for pr in playerRows:
-            pts = pr.select("td.appliedPoints")[0].string
-            pts = None if pts == NULL_PTS_STRING else float(pts)
-
-            tag = pr.select("td.playertablePlayerName")[0]
-            id = int(tag.a["playerid"])
-            name = tag.a.string
-            details = list(tag.strings)[1].split(None, 2)
-            if details[0] == DEF_STRING:
-                team = next(x for x in teams if x.espn_id == id)
-                team.projected_defense_points = pts
-            else:
-                if details[1] == FA_STRING: team = None
-                else:
-                    team = next(x for x in teams
-                            if x.espn_code == details[1].upper())
-                pos = [next(p for p in positions if s.strip() == p.espn_code)
-                    for s in details[2].split(",")]
-                pl = next((x for x in players if x.espn_id == id), None)
-                if pl == None:
-                    pl = models.NflPlayer(id, name, team, pos, pts)
-                    db.session.add(pl)
-                    print("Added player " + name + ".")
-                    players.append(pl)
-                else:
-                    pl.name = name
-                    pl.team = team
-                    pl.positions = pos
-                    pl.projected_points = pts
-        url = soup.find(string="NEXT")
-        if url: url = url.parent["href"]
-    db.session.commit()
-    print("Updated all projections.")
+    page = requests.get(BOXSCORE_URL.format(id))
+    soup = BeautifulSoup(page.content, "lxml")
+    teams = [t.a["href"].split("=")[1] for t in
+        soup.select("td.team-column-header")]
+    # db.session.add(models.NflcomGame(id=int(id),
+    #                                  home_team=teams[1],
+    #                                  away_team=teams[0]))
+    # db.session.commit()
+    for (team, table) in zip(teams, soup.select("table.gc-team-leaders-table")):
+        row = table.tr
+        assert row["class"] == ["thd2"]
+        assert row.td.string == "Passing"
+        while True:
+            row = row.find_next_sibling("tr")
+            if row["class"] == ["thd2"]: break
+            print(row.td.string)
+            # db.session.add(models.NflcomPassing())
