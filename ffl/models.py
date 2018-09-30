@@ -10,14 +10,16 @@ class NflcomGame(db.Model):
     away_team = db.Column(db.String(32))
 
 class NflcomPassing(db.Model):
+    game_id = db.Column(db.Integer, db.ForeignKey('nflcom_game.id'),
+                        primary_key=True)
     player_id = db.Column(db.String(32, primary_key=True))
-    game_id = db.Column(db.Integer, db.ForeignKey('nflcom_game.id'), primary_key=True)
     player_name = db.Column(db.String(32))
     cp = db.Column(db.Float)
     at = db.Column(db.Float)
     yds = db.Column(db.Float)
     td = db.Column(db.Float)
     int_ = db.Column(db.Float)
+    team = db.Column(db.String(32))
 
 class NflPlayer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
