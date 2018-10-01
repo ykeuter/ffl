@@ -4,21 +4,126 @@ playerPosition = db.Table('nfl_player_position',
         db.Column('player_id', db.Integer, db.ForeignKey('nfl_player.id')),
         db.Column('posiiton_id', db.Integer, db.ForeignKey('position.id')))
 
-class NflcomGame(db.Model):
-    id = db.Column(db.Interger, primary_key=True)
+class NflBoxscoreGame(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    year = db.Column(db.Integer)
+    week = db.Column(db.String(32))
     home_team = db.Column(db.String(32))
     away_team = db.Column(db.String(32))
 
-class NflcomPassing(db.Model):
-    game_id = db.Column(db.Integer, db.ForeignKey('nflcom_game.id'),
+class NflBoxscorePassing(db.Model):
+    game_id = db.Column(db.Integer, db.ForeignKey('nfl_boxscore_game.id',
+                                                  ondelete="CASCADE"),
                         primary_key=True)
-    player_id = db.Column(db.String(32, primary_key=True))
+    player_id = db.Column(db.String(32), primary_key=True)
     player_name = db.Column(db.String(32))
-    cp = db.Column(db.Float)
-    at = db.Column(db.Float)
-    yds = db.Column(db.Float)
-    td = db.Column(db.Float)
-    int_ = db.Column(db.Float)
+    cp = db.Column(db.Integer)
+    at = db.Column(db.Integer)
+    yds = db.Column(db.Integer)
+    td = db.Column(db.Integer)
+    int = db.Column(db.Integer)
+    team = db.Column(db.String(32))
+
+class NflBoxscoreRushing(db.Model):
+    game_id = db.Column(db.Integer, db.ForeignKey('nfl_boxscore_game.id',
+                                                  ondelete="CASCADE"),
+                        primary_key=True)
+    player_id = db.Column(db.String(32), primary_key=True)
+    player_name = db.Column(db.String(32))
+    att = db.Column(db.Integer)
+    yds = db.Column(db.Integer)
+    td = db.Column(db.Integer)
+    lg = db.Column(db.Integer)
+    lg_td = db.Column(db.Boolean)
+    team = db.Column(db.String(32))
+
+class NflBoxscoreReceiving(db.Model):
+    game_id = db.Column(db.Integer, db.ForeignKey('nfl_boxscore_game.id',
+                                                  ondelete="CASCADE"),
+                        primary_key=True)
+    player_id = db.Column(db.String(32), primary_key=True)
+    player_name = db.Column(db.String(32))
+    rec = db.Column(db.Integer)
+    yds = db.Column(db.Integer)
+    td = db.Column(db.Integer)
+    lg = db.Column(db.Integer)
+    lg_td = db.Column(db.Boolean)
+    team = db.Column(db.String(32))
+
+class NflBoxscoreFumbles(db.Model):
+    game_id = db.Column(db.Integer, db.ForeignKey('nfl_boxscore_game.id',
+                                                  ondelete="CASCADE"),
+                        primary_key=True)
+    player_id = db.Column(db.String(32), primary_key=True)
+    player_name = db.Column(db.String(32))
+    fum = db.Column(db.Integer)
+    lost = db.Column(db.Integer)
+    rec = db.Column(db.Integer)
+    yds = db.Column(db.Integer)
+    team = db.Column(db.String(32))
+
+class NflBoxscoreKicking(db.Model):
+    game_id = db.Column(db.Integer, db.ForeignKey('nfl_boxscore_game.id',
+                                                  ondelete="CASCADE"),
+                        primary_key=True)
+    player_id = db.Column(db.String(32), primary_key=True)
+    player_name = db.Column(db.String(32))
+    fg_att = db.Column(db.Integer)
+    fg_made = db.Column(db.Integer)
+    lg = db.Column(db.Integer)
+    xp_att = db.Column(db.Integer)
+    xp_made = db.Column(db.Integer)
+    pts = db.Column(db.Integer)
+    team = db.Column(db.String(32))
+
+class NflBoxscorePunting(db.Model):
+    game_id = db.Column(db.Integer, db.ForeignKey('nfl_boxscore_game.id',
+                                                  ondelete="CASCADE"),
+                        primary_key=True)
+    player_id = db.Column(db.String(32), primary_key=True)
+    player_name = db.Column(db.String(32))
+    no = db.Column(db.Integer)
+    avg = db.Column(db.Float)
+    i20 = db.Column(db.Integer)
+    lg = db.Column(db.Integer)
+    team = db.Column(db.String(32))
+
+class NflBoxscoreKickoffReturns(db.Model):
+    game_id = db.Column(db.Integer, db.ForeignKey('nfl_boxscore_game.id',
+                                                  ondelete="CASCADE"),
+                        primary_key=True)
+    player_id = db.Column(db.String(32), primary_key=True)
+    player_name = db.Column(db.String(32))
+    no = db.Column(db.Integer)
+    avg = db.Column(db.Integer)
+    td = db.Column(db.Integer)
+    lg = db.Column(db.Integer)
+    team = db.Column(db.String(32))
+
+class NflBoxscorePuntReturns(db.Model):
+    game_id = db.Column(db.Integer, db.ForeignKey('nfl_boxscore_game.id',
+                                                  ondelete="CASCADE"),
+                        primary_key=True)
+    player_id = db.Column(db.String(32), primary_key=True)
+    player_name = db.Column(db.String(32))
+    no = db.Column(db.Integer)
+    avg = db.Column(db.Integer)
+    td = db.Column(db.Integer)
+    lg = db.Column(db.Integer)
+    lg_td = db.Column(db.Boolean)
+    team = db.Column(db.String(32))
+
+class NflBoxscoreDefense(db.Model):
+    game_id = db.Column(db.Integer, db.ForeignKey('nfl_boxscore_game.id',
+                                                  ondelete="CASCADE"),
+                        primary_key=True)
+    player_id = db.Column(db.String(32), primary_key=True)
+    player_name = db.Column(db.String(32))
+    t = db.Column(db.Integer)
+    a = db.Column(db.Integer)
+    sck = db.Column(db.Float)
+    int = db.Column(db.Integer)
+    ff = db.Column(db.Integer)
     team = db.Column(db.String(32))
 
 class NflPlayer(db.Model):

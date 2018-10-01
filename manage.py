@@ -1,4 +1,4 @@
-from ffl import app, db, models, espn
+from ffl import app, db, models, espn, nfl
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 import csv
@@ -21,6 +21,21 @@ def delete_data():
 @manager.command
 def update_projections():
     espn.update_projections()
+
+@manager.command
+def update_boxscores(year=None, week=None):
+    if year is None:
+        models.NflBoxscoreGame.query.delete()
+        db.session.commit()
+        nfl.load_boxscores()
+    elif week is None:
+        models.NflBoxscoreGame.query.filter_by(year=year).delete()
+        db.session.commit()
+        nfl.load_boxscores_per_year(year)
+    else:
+        models.NflBoxscoreGame.query.filter_by(year=year, week=week).delete()
+        db.session.commit()
+        nfl.load_boxscores_per_week(year, week)
 
 @manager.command
 def load_data():

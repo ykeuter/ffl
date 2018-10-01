@@ -2,38 +2,39 @@ from ffl import app, db, models
 import requests, re, demjson
 from bs4 import BeautifulSoup
 
-URL = "http://www.nfl.com"
+URL = "http://www.nfl.com/scores"
 BOXSCORE_URL = "http://www.nfl.com/widget/gc/2011/tabs/cat-post-boxscore?gameId={}"
 
 def load_boxscores():
-    page = requests.get(URL + "/scores")
+    page = requests.get(URL)
     soup = BeautifulSoup(page.content, "lxml")
     years = soup.select("ol.year-selector a")
     for y in years:
-        get_boxscore_per_year(y.string)
+        load_boxscores_per_year(int(y.string))
 
-def load_boxscore_per_year(year):
-    page = requests.get(URL + "/scores/{}/REG1".format(year))
+def load_boxscores_per_year(year):
+    page = requests.get(URL + "/{}/REG1".format(year))
     soup = BeautifulSoup(page.content, "lxml")
     weeks = soup.select("a.week-item")
     for w in weeks:
-        get_boxscore_per_week(w["href"])
+        load_boxscores_per_week(year, w["href"].split("/")[-1])
         
-def load_boxscore_per_week(week):
-    page = requests.get(URL + week)
+def load_boxscores_per_week(year, week):
+    page = requests.get(URL + "/{}/{}".format(year, week))
     soup = BeautifulSoup(page.content, "lxml")
     games = soup.select("div[class='scorebox-wrapper']")
     for g in games:
-        print(g.div["id"][9:])
+        load_boxscore(year, week, int(g.div["id"][9:]))
 
-def load_boxscore(id):
+def load_boxscore(year, week, id):
+    print("Loading game {}...".format(id))
     page = requests.get(BOXSCORE_URL.format(id))
     soup = BeautifulSoup(page.content, "lxml")
     teams = [t.a["href"].split("=")[1] for t in
         soup.select("td.team-column-header")]
-    db.session.add(models.NflGame(id=int(id),
-                                     home_team=teams[1],
-                                     away_team=teams[0]))
+    db.session.add(models.NflBoxscoreGame(id=id, year=year, week=week,
+                                          home_team=teams[1],
+                                          away_team=teams[0]))
     db.session.commit()
     for (team, table) in zip(teams, soup.select("table.gc-team-leaders-table")):
         row = table.tr
@@ -46,7 +47,7 @@ def load_boxscore(id):
         while True:
             row = row.find_next_sibling("tr")
             if row["class"] == ["thd2"]: break
-            d = {"team":, team, "game_id": int(id)}
+            d = {"team": team, "game_id": id}
             cols = row.select("td")
             d["player_id"] = cols[0].a["data-id"]
             d["player_name"] = cols[0].string
@@ -63,14 +64,19 @@ def load_boxscore(id):
         while True:
             row = row.find_next_sibling("tr")
             if row["class"] == ["thd2"]: break
-            d = {"team":, team, "game_id": int(id)}
+            d = {"team": team, "game_id": id}
             cols = row.select("td")
             d["player_id"] = cols[0].a["data-id"]
             d["player_name"] = cols[0].string
             d["att"] = int(cols[1].string)
             d["yds"] = int(cols[2].string)
             d["td"] = int(cols[3].string)
-            d["lg"] = int(cols[4].string)
+            if cols[4].string[-1] == "T":
+                d["lg_td"] = True
+                d["lg"] = int(cols[4].string[:-1])
+            else:
+                d["lg_td"] = False
+                d["lg"] = int(cols[4].string)
             db.session.add(models.NflBoxscoreRushing(**d))
 
         # Receiving
@@ -80,14 +86,19 @@ def load_boxscore(id):
         while True:
             row = row.find_next_sibling("tr")
             if row["class"] == ["thd2"]: break
-            d = {"team":, team, "game_id": int(id)}
+            d = {"team": team, "game_id": id}
             cols = row.select("td")
             d["player_id"] = cols[0].a["data-id"]
             d["player_name"] = cols[0].string
             d["rec"] = int(cols[1].string)
             d["yds"] = int(cols[2].string)
             d["td"] = int(cols[3].string)
-            d["lg"] = int(cols[4].string)
+            if cols[4].string[-1] == "T":
+                d["lg_td"] = True
+                d["lg"] = int(cols[4].string[:-1])
+            else:
+                d["lg_td"] = False
+                d["lg"] = int(cols[4].string)
             db.session.add(models.NflBoxscoreReceiving(**d))
 
         # Fumbles
@@ -97,7 +108,7 @@ def load_boxscore(id):
         while True:
             row = row.find_next_sibling("tr")
             if row["class"] == ["thd2"]: break
-            d = {"team":, team, "game_id": int(id)}
+            d = {"team": team, "game_id": id}
             cols = row.select("td")
             d["player_id"] = cols[0].a["data-id"]
             d["player_name"] = cols[0].string
@@ -114,14 +125,14 @@ def load_boxscore(id):
         while True:
             row = row.find_next_sibling("tr")
             if row["class"] == ["thd2"]: break
-            d = {"team":, team, "game_id": int(id)}
+            d = {"team": team, "game_id": id}
             cols = row.select("td")
             d["player_id"] = cols[0].a["data-id"]
             d["player_name"] = cols[0].string
-            d["fg_att"], d["fg_made"] =
+            d["fg_att"], d["fg_made"] = \
                 [int(x) for x in cols[1].string.split("/")]
             d["lg"] = int(cols[2].string)
-            d["xp_att"], d["xp_made"] =
+            d["xp_att"], d["xp_made"] = \
                 [int(x) for x in cols[3].string.split("/")]
             d["pts"] = int(cols[4].string)
             db.session.add(models.NflBoxscoreKicking(**d))
@@ -133,7 +144,7 @@ def load_boxscore(id):
         while True:
             row = row.find_next_sibling("tr")
             if row["class"] == ["thd2"]: break
-            d = {"team":, team, "game_id": int(id)}
+            d = {"team": team, "game_id": id}
             cols = row.select("td")
             d["player_id"] = cols[0].a["data-id"]
             d["player_name"] = cols[0].string
@@ -150,7 +161,7 @@ def load_boxscore(id):
         while True:
             row = row.find_next_sibling("tr")
             if row["class"] == ["thd2"]: break
-            d = {"team":, team, "game_id": int(id)}
+            d = {"team": team, "game_id": id}
             cols = row.select("td")
             d["player_id"] = cols[0].a["data-id"]
             d["player_name"] = cols[0].string
@@ -167,14 +178,19 @@ def load_boxscore(id):
         while True:
             row = row.find_next_sibling("tr")
             if row["class"] == ["thd2"]: break
-            d = {"team":, team, "game_id": int(id)}
+            d = {"team": team, "game_id": id}
             cols = row.select("td")
             d["player_id"] = cols[0].a["data-id"]
             d["player_name"] = cols[0].string
             d["no"] = int(cols[1].string)
             d["avg"] = int(cols[2].string)
             d["td"] = int(cols[3].string)
-            d["lg"] = int(cols[4].string)
+            if cols[4].string[-1] == "T":
+                d["lg_td"] = True
+                d["lg"] = int(cols[4].string[:-1])
+            else:
+                d["lg_td"] = False
+                d["lg"] = int(cols[4].string)
             db.session.add(models.NflBoxscorePuntReturns(**d))
 
         # Defense
@@ -184,11 +200,11 @@ def load_boxscore(id):
         while True:
             row = row.find_next_sibling("tr")
             if row is None: break
-            d = {"team":, team, "game_id": int(id)}
+            d = {"team": team, "game_id": id}
             cols = row.select("td")
             d["player_id"] = cols[0].a["data-id"]
             d["player_name"] = cols[0].string
-            d["t"], d["a"] =
+            d["t"], d["a"] = \
                 [int(x) for x in cols[1].string.split("-")]
             d["sck"] = float(cols[2].string)
             d["int"] = int(cols[3].string)
