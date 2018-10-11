@@ -16,7 +16,8 @@ PLAYERS_URL = "http://games.espn.com/ffl/tools/projections?leagueId={}"
 DRAFT_INIT_URL = \
     "http://games.espn.com/ffl/htmldraft?leagueId={}&teamId={}&fromTeamId={}"
 DRAFT_UPDATE_URL = \
-    "http://ffl.draft.espn.com/league-{}/extdraft/json/JOIN?1={}&2={}&3={}&4={}&5={}&poll=0"
+    "http://ffl.draft.espn.com/league-{}/extdraft/json/JOIN?" \
+    "1={}&2={}&3={}&4={}&5={}&poll=0"
 
 def update_projections():
     teams = models.NflTeam.query.all()

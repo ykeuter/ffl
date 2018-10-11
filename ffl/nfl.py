@@ -2,8 +2,109 @@ from ffl import app, db, models
 import requests, re, demjson
 from bs4 import BeautifulSoup
 
-URL = "http://www.nfl.com/scores"
-BOXSCORE_URL = "http://www.nfl.com/widget/gc/2011/tabs/cat-post-boxscore?gameId={}"
+SEASON_URL = "https://api.nfl.com/v3/shield/?" \
+    "query=query{viewer{season(season:{})" \
+    "{weeks{id games{id esbId gameDetailId gameTime networkChannels " \
+    "venue{city state displayName}awayTeam{nickName id abbreviation " \
+    "logo{permalink}injuries{leagueReportedInjuries{playerId}}}" \
+    "homeTeam{nickName id abbreviation logo{permalink}" \
+    "injuries{leagueReportedInjuries{playerId}}}}season{id}weekOrder " \
+    "seasonType seasonValue weekOrder weekType weekValue}}}}&" \
+    "variables=null"
+
+PLAYER_GAME_STATS_URL = "https://api.nfl.com/v3/shield/?" \
+    "query=query{viewer{playerGameStats(first:200,game_id:"{}")" \
+    "{edges{cursor node{createdDate game{id}gameStats{defensiveAssists " \
+    "defensiveInterceptions defensiveInterceptionsYards " \
+    "defensiveForcedFumble defensivePassesDefensed defensiveSacks " \
+    "defensiveSafeties defensiveSoloTackles defensiveTotalTackles " \
+    "defensiveTacklesForALoss touchdownsDefense fumblesLost fumblesTotal " \
+    "kickReturns kickReturnsLong kickReturnsTouchdowns kickReturnsYards " \
+    "kickingFgAtt kickingFgLong kickingFgMade kickingXkAtt kickingXkMade " \
+    "passingAttempts passingCompletions passingTouchdowns passingYards " \
+    "passingInterceptions puntReturns puntingAverageYards puntingLong " \
+    "puntingPunts puntingPuntsInside20 receivingReceptions receivingTarget " \
+    "receivingTouchdowns receivingYards rushingAttempts rushingAverageYards " \
+    "rushingTouchdowns rushingYards kickoffReturnsTouchdowns " \
+    "kickoffReturnsYards puntReturnsLong opponentFumbleRecovery " \
+    "totalPointsScored kickReturnsAverageYards puntReturnsAverageYards " \
+    "puntReturnsTouchdowns}id lastModifiedDate player{position jerseyNumber " \
+    "currentTeam{abbreviation nickName}person{firstName lastName displayName " \
+    "headshot{asset{url}}}}season{id}week{id}}}}}}&" \
+    "variables=null"
+
+LIVE_URL = "https://api.nfl.com/v3/shield/?" \
+    "query=query{viewer{live{playerGameStats(gameDetailId:"{}")" \
+    "{createdDate gameStats{defensiveAssists defensiveInterceptions " \
+    "defensiveInterceptionsYards defensiveForcedFumble " \
+    "defensivePassesDefensed defensiveSacks defensiveSafeties " \
+    "defensiveSoloTackles defensiveTotalTackles defensiveTacklesForALoss " \
+    "touchdownsDefense fumblesLost fumblesTotal kickReturns kickReturnsLong " \
+    "kickReturnsTouchdowns kickReturnsYards kickingFgAtt kickingFgLong " \
+    "kickingFgMade kickingXkAtt kickingXkMade passingAttempts " \
+    "passingCompletions passingTouchdowns passingYards passingInterceptions " \
+    "puntReturns puntingAverageYards puntingLong puntingPunts " \
+    "puntingPuntsInside20 receivingReceptions receivingTarget " \
+    "receivingTouchdowns receivingYards rushingAttempts rushingAverageYards " \
+    "rushingTouchdowns rushingYards kickoffReturnsTouchdowns " \
+    "kickoffReturnsYards puntReturnsLong opponentFumbleRecovery " \
+    "totalPointsScored kickReturnsAverageYards puntReturnsAverageYards " \
+    "puntReturnsTouchdowns}lastModifiedDate team{nickName}player{position " \
+    "firstName nickName lastName}}}}}&" \
+    "variables=null"
+
+TOKEN_URL = "https://api.nfl.com/v1/reroute"
+
+PLAYER_GAME_STATS = [
+    'defensive_assists',
+    'defensive_interceptions',
+    'defensive_interceptions_yards',
+    'defensive_forced_fumble',
+    'defensive_passes_defensed',
+    'defensive_sacks',
+    'defensive_safeties',
+    'defensive_solo_tackles',
+    'defensive_total_tackles',
+    'defensive_tackles_for_a_loss',
+    'touchdowns_defense',
+    'fumbles_lost',
+    'fumbles_total',
+    'kick_returns',
+    'kick_returns_long',
+    'kick_returns_touchdowns',
+    'kick_returns_yards',
+    'kicking_fg_att',
+    'kicking_fg_long',
+    'kicking_fg_made',
+    'kicking_xk_att',
+    'kicking_xk_made',
+    'passing_attempts',
+    'passing_completions',
+    'passing_touchdowns',
+    'passing_yards',
+    'passing_interceptions',
+    'punt_returns',
+    'punting_average_yards',
+    'punting_long',
+    'punting_punts',
+    'punting_punts_inside20',
+    'receiving_receptions',
+    'receiving_target',
+    'receiving_touchdowns',
+    'receiving_yards',
+    'rushing_attempts',
+    'rushing_average_yards',
+    'rushing_touchdowns',
+    'rushing_yards',
+    'kickoff_returns_touchdowns',
+    'kickoff_returns_yards',
+    'punt_returns_long',
+    'opponent_fumble_recovery',
+    'total_points_scored',
+    'kick_returns_average_yards',
+    'punt_returns_average_yards',
+    'punt_returns_touchdowns',
+]
 
 def load_boxscores():
     page = requests.get(URL)
@@ -13,19 +114,16 @@ def load_boxscores():
         load_boxscores_per_year(int(y.string))
 
 def load_boxscores_per_year(year):
+    print(year)
+
     page = requests.get(URL + "/{}/REG1".format(year))
     soup = BeautifulSoup(page.content, "lxml")
     weeks = soup.select("a.week-item")
+    print(weeks)
     for w in weeks:
+        print(year)
         load_boxscores_per_week(year, w["href"].split("/")[-1])
         
-def load_boxscores_per_week(year, week):
-    page = requests.get(URL + "/{}/{}".format(year, week))
-    soup = BeautifulSoup(page.content, "lxml")
-    games = soup.select("div[class='scorebox-wrapper']")
-    for g in games:
-        load_boxscore(year, week, int(g.div["id"][9:]))
-
 def load_boxscore(year, week, id):
     print("Loading game {}...".format(id))
     page = requests.get(BOXSCORE_URL.format(id))
@@ -56,159 +154,5 @@ def load_boxscore(year, week, id):
             d["td"] = int(cols[3].string)
             d["int"] = int(cols[4].string)
             db.session.add(models.NflBoxscorePassing(**d))
-
-        # Rushing
-        cols = ["Rushing", "ATT", "YDS", "TD", "LG"]
-        for c, td in zip(cols, row.select("td")):
-            assert td.string == c
-        while True:
-            row = row.find_next_sibling("tr")
-            if row["class"] == ["thd2"]: break
-            d = {"team": team, "game_id": id}
-            cols = row.select("td")
-            d["player_id"] = cols[0].a["data-id"]
-            d["player_name"] = cols[0].string
-            d["att"] = int(cols[1].string)
-            d["yds"] = int(cols[2].string)
-            d["td"] = int(cols[3].string)
-            if cols[4].string[-1] == "T":
-                d["lg_td"] = True
-                d["lg"] = int(cols[4].string[:-1])
-            else:
-                d["lg_td"] = False
-                d["lg"] = int(cols[4].string)
-            db.session.add(models.NflBoxscoreRushing(**d))
-
-        # Receiving
-        cols = ["Receiving", "REC", "YDS", "TD", "LG"]
-        for c, td in zip(cols, row.select("td")):
-            assert td.string == c
-        while True:
-            row = row.find_next_sibling("tr")
-            if row["class"] == ["thd2"]: break
-            d = {"team": team, "game_id": id}
-            cols = row.select("td")
-            d["player_id"] = cols[0].a["data-id"]
-            d["player_name"] = cols[0].string
-            d["rec"] = int(cols[1].string)
-            d["yds"] = int(cols[2].string)
-            d["td"] = int(cols[3].string)
-            if cols[4].string[-1] == "T":
-                d["lg_td"] = True
-                d["lg"] = int(cols[4].string[:-1])
-            else:
-                d["lg_td"] = False
-                d["lg"] = int(cols[4].string)
-            db.session.add(models.NflBoxscoreReceiving(**d))
-
-        # Fumbles
-        cols = ["Fumbles", "FUM", "LOST", "REC", "YDS"]
-        for c, td in zip(cols, row.select("td")):
-            assert td.string == c
-        while True:
-            row = row.find_next_sibling("tr")
-            if row["class"] == ["thd2"]: break
-            d = {"team": team, "game_id": id}
-            cols = row.select("td")
-            d["player_id"] = cols[0].a["data-id"]
-            d["player_name"] = cols[0].string
-            d["fum"] = int(cols[1].string)
-            d["lost"] = int(cols[2].string)
-            d["rec"] = int(cols[3].string)
-            d["yds"] = int(cols[4].string)
-            db.session.add(models.NflBoxscoreFumbles(**d))
-
-        # Kicking
-        cols = ["Kicking", "FG", "LG", "XP", "PTS"]
-        for c, td in zip(cols, row.select("td")):
-            assert td.string == c
-        while True:
-            row = row.find_next_sibling("tr")
-            if row["class"] == ["thd2"]: break
-            d = {"team": team, "game_id": id}
-            cols = row.select("td")
-            d["player_id"] = cols[0].a["data-id"]
-            d["player_name"] = cols[0].string
-            d["fg_att"], d["fg_made"] = \
-                [int(x) for x in cols[1].string.split("/")]
-            d["lg"] = int(cols[2].string)
-            d["xp_att"], d["xp_made"] = \
-                [int(x) for x in cols[3].string.split("/")]
-            d["pts"] = int(cols[4].string)
-            db.session.add(models.NflBoxscoreKicking(**d))
-
-        # Punting
-        cols = ["Punting", "NO", "AVG", "I20", "LG"]
-        for c, td in zip(cols, row.select("td")):
-            assert td.string == c
-        while True:
-            row = row.find_next_sibling("tr")
-            if row["class"] == ["thd2"]: break
-            d = {"team": team, "game_id": id}
-            cols = row.select("td")
-            d["player_id"] = cols[0].a["data-id"]
-            d["player_name"] = cols[0].string
-            d["no"] = int(cols[1].string)
-            d["avg"] = float(cols[2].string)
-            d["i20"] = int(cols[3].string)
-            d["lg"] = int(cols[4].string)
-            db.session.add(models.NflBoxscorePunting(**d))
-
-        # Kickoff Returns
-        cols = ["Kickoff Returns", "NO", "AVG", "TD", "LG"]
-        for c, td in zip(cols, row.select("td")):
-            assert td.string == c
-        while True:
-            row = row.find_next_sibling("tr")
-            if row["class"] == ["thd2"]: break
-            d = {"team": team, "game_id": id}
-            cols = row.select("td")
-            d["player_id"] = cols[0].a["data-id"]
-            d["player_name"] = cols[0].string
-            d["no"] = int(cols[1].string)
-            d["avg"] = int(cols[2].string)
-            d["td"] = int(cols[3].string)
-            d["lg"] = int(cols[4].string)
-            db.session.add(models.NflBoxscoreKickoffReturns(**d))
-
-        # Punt Returns
-        cols = ["Punt Returns", "NO", "AVG", "TD", "LG"]
-        for c, td in zip(cols, row.select("td")):
-            assert td.string == c
-        while True:
-            row = row.find_next_sibling("tr")
-            if row["class"] == ["thd2"]: break
-            d = {"team": team, "game_id": id}
-            cols = row.select("td")
-            d["player_id"] = cols[0].a["data-id"]
-            d["player_name"] = cols[0].string
-            d["no"] = int(cols[1].string)
-            d["avg"] = int(cols[2].string)
-            d["td"] = int(cols[3].string)
-            if cols[4].string[-1] == "T":
-                d["lg_td"] = True
-                d["lg"] = int(cols[4].string[:-1])
-            else:
-                d["lg_td"] = False
-                d["lg"] = int(cols[4].string)
-            db.session.add(models.NflBoxscorePuntReturns(**d))
-
-        # Defense
-        cols = ["Defense", "T-A", "SCK", "INT", "FF"]
-        for c, td in zip(cols, row.select("td")):
-            assert td.string == c
-        while True:
-            row = row.find_next_sibling("tr")
-            if row is None: break
-            d = {"team": team, "game_id": id}
-            cols = row.select("td")
-            d["player_id"] = cols[0].a["data-id"]
-            d["player_name"] = cols[0].string
-            d["t"], d["a"] = \
-                [int(x) for x in cols[1].string.split("-")]
-            d["sck"] = float(cols[2].string)
-            d["int"] = int(cols[3].string)
-            d["ff"] = int(cols[4].string)
-            db.session.add(models.NflBoxscoreDefense(**d))
 
     db.session.commit()

@@ -24,6 +24,7 @@ def update_projections():
 
 @manager.command
 def update_boxscores(year=None, week=None):
+    year = int(year)
     if year is None:
         models.NflBoxscoreGame.query.delete()
         db.session.commit()
