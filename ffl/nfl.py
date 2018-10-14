@@ -1,57 +1,57 @@
 from ffl import app, db, models
-import requests, re, demjson
-from bs4 import BeautifulSoup
+import requests, datetime, stringcase
 
-SEASON_URL = "https://api.nfl.com/v3/shield/?" \
-    "query=query{viewer{season(season:{})" \
-    "{weeks{id games{id esbId gameDetailId gameTime networkChannels " \
-    "venue{city state displayName}awayTeam{nickName id abbreviation " \
-    "logo{permalink}injuries{leagueReportedInjuries{playerId}}}" \
-    "homeTeam{nickName id abbreviation logo{permalink}" \
-    "injuries{leagueReportedInjuries{playerId}}}}season{id}weekOrder " \
-    "seasonType seasonValue weekOrder weekType weekValue}}}}&" \
-    "variables=null"
+SEASON_URL = 'https://api.nfl.com/v3/shield/?' \
+    'query=query{{viewer{{season(season:{})' \
+    '{{weeks{{id games{{id esbId gameDetailId gameTime networkChannels ' \
+    'venue{{city state displayName}}awayTeam{{nickName id abbreviation ' \
+    'logo{{permalink}}injuries{{leagueReportedInjuries{{playerId}}}}}}' \
+    'homeTeam{{nickName id abbreviation logo{{permalink}}' \
+    'injuries{{leagueReportedInjuries{{playerId}}}}}}}}season{{id}}' \
+    'weekOrder seasonType seasonValue weekOrder weekType weekValue}}}}}}}}&' \
+    'variables=null'
 
-PLAYER_GAME_STATS_URL = "https://api.nfl.com/v3/shield/?" \
-    "query=query{viewer{playerGameStats(first:200,game_id:"{}")" \
-    "{edges{cursor node{createdDate game{id}gameStats{defensiveAssists " \
-    "defensiveInterceptions defensiveInterceptionsYards " \
-    "defensiveForcedFumble defensivePassesDefensed defensiveSacks " \
-    "defensiveSafeties defensiveSoloTackles defensiveTotalTackles " \
-    "defensiveTacklesForALoss touchdownsDefense fumblesLost fumblesTotal " \
-    "kickReturns kickReturnsLong kickReturnsTouchdowns kickReturnsYards " \
-    "kickingFgAtt kickingFgLong kickingFgMade kickingXkAtt kickingXkMade " \
-    "passingAttempts passingCompletions passingTouchdowns passingYards " \
-    "passingInterceptions puntReturns puntingAverageYards puntingLong " \
-    "puntingPunts puntingPuntsInside20 receivingReceptions receivingTarget " \
-    "receivingTouchdowns receivingYards rushingAttempts rushingAverageYards " \
-    "rushingTouchdowns rushingYards kickoffReturnsTouchdowns " \
-    "kickoffReturnsYards puntReturnsLong opponentFumbleRecovery " \
-    "totalPointsScored kickReturnsAverageYards puntReturnsAverageYards " \
-    "puntReturnsTouchdowns}id lastModifiedDate player{position jerseyNumber " \
-    "currentTeam{abbreviation nickName}person{firstName lastName displayName " \
-    "headshot{asset{url}}}}season{id}week{id}}}}}}&" \
-    "variables=null"
+PLAYER_GAME_STATS_URL = 'https://api.nfl.com/v3/shield/?' \
+    'query=query{{viewer{{playerGameStats(first:200,game_id:"{}")' \
+    '{{edges{{cursor node{{createdDate game{{id}}gameStats{{' \
+    'defensiveAssists defensiveInterceptions defensiveInterceptionsYards ' \
+    'defensiveForcedFumble defensivePassesDefensed defensiveSacks ' \
+    'defensiveSafeties defensiveSoloTackles defensiveTotalTackles ' \
+    'defensiveTacklesForALoss touchdownsDefense fumblesLost fumblesTotal ' \
+    'kickReturns kickReturnsLong kickReturnsTouchdowns kickReturnsYards ' \
+    'kickingFgAtt kickingFgLong kickingFgMade kickingXkAtt kickingXkMade ' \
+    'passingAttempts passingCompletions passingTouchdowns passingYards ' \
+    'passingInterceptions puntReturns puntingAverageYards puntingLong ' \
+    'puntingPunts puntingPuntsInside20 receivingReceptions receivingTarget ' \
+    'receivingTouchdowns receivingYards rushingAttempts rushingAverageYards ' \
+    'rushingTouchdowns rushingYards kickoffReturnsTouchdowns ' \
+    'kickoffReturnsYards puntReturnsLong opponentFumbleRecovery ' \
+    'totalPointsScored kickReturnsAverageYards puntReturnsAverageYards ' \
+    'puntReturnsTouchdowns}}id lastModifiedDate player{{position ' \
+    'jerseyNumber currentTeam{{abbreviation nickName}}person{{firstName ' \
+    'lastName displayName id headshot{{asset{{url}}}}}}}}' \
+    'season{{id}}week{{id}}}}}}}}}}}}&' \
+    'variables=null'
 
-LIVE_URL = "https://api.nfl.com/v3/shield/?" \
-    "query=query{viewer{live{playerGameStats(gameDetailId:"{}")" \
-    "{createdDate gameStats{defensiveAssists defensiveInterceptions " \
-    "defensiveInterceptionsYards defensiveForcedFumble " \
-    "defensivePassesDefensed defensiveSacks defensiveSafeties " \
-    "defensiveSoloTackles defensiveTotalTackles defensiveTacklesForALoss " \
-    "touchdownsDefense fumblesLost fumblesTotal kickReturns kickReturnsLong " \
-    "kickReturnsTouchdowns kickReturnsYards kickingFgAtt kickingFgLong " \
-    "kickingFgMade kickingXkAtt kickingXkMade passingAttempts " \
-    "passingCompletions passingTouchdowns passingYards passingInterceptions " \
-    "puntReturns puntingAverageYards puntingLong puntingPunts " \
-    "puntingPuntsInside20 receivingReceptions receivingTarget " \
-    "receivingTouchdowns receivingYards rushingAttempts rushingAverageYards " \
-    "rushingTouchdowns rushingYards kickoffReturnsTouchdowns " \
-    "kickoffReturnsYards puntReturnsLong opponentFumbleRecovery " \
-    "totalPointsScored kickReturnsAverageYards puntReturnsAverageYards " \
-    "puntReturnsTouchdowns}lastModifiedDate team{nickName}player{position " \
-    "firstName nickName lastName}}}}}&" \
-    "variables=null"
+LIVE_URL = 'https://api.nfl.com/v3/shield/?' \
+    'query=query{{viewer{{live{{playerGameStats(gameDetailId:"{}")' \
+    '{{createdDate gameStats{{defensiveAssists defensiveInterceptions ' \
+    'defensiveInterceptionsYards defensiveForcedFumble ' \
+    'defensivePassesDefensed defensiveSacks defensiveSafeties ' \
+    'defensiveSoloTackles defensiveTotalTackles defensiveTacklesForALoss ' \
+    'touchdownsDefense fumblesLost fumblesTotal kickReturns kickReturnsLong ' \
+    'kickReturnsTouchdowns kickReturnsYards kickingFgAtt kickingFgLong ' \
+    'kickingFgMade kickingXkAtt kickingXkMade passingAttempts ' \
+    'passingCompletions passingTouchdowns passingYards passingInterceptions ' \
+    'puntReturns puntingAverageYards puntingLong puntingPunts ' \
+    'puntingPuntsInside20 receivingReceptions receivingTarget ' \
+    'receivingTouchdowns receivingYards rushingAttempts rushingAverageYards ' \
+    'rushingTouchdowns rushingYards kickoffReturnsTouchdowns ' \
+    'kickoffReturnsYards puntReturnsLong opponentFumbleRecovery ' \
+    'totalPointsScored kickReturnsAverageYards puntReturnsAverageYards ' \
+    'puntReturnsTouchdowns}}lastModifiedDate team{{nickName}}' \
+    'player{{position firstName nickName lastName}}}}}}}}}}&' \
+    'variables=null'
 
 TOKEN_URL = "https://api.nfl.com/v1/reroute"
 
@@ -106,53 +106,63 @@ PLAYER_GAME_STATS = [
     'punt_returns_touchdowns',
 ]
 
+def get_token():
+    data = {"grant_type": "client_credentials"}
+    headers = {"x-domain-id": "100"}
+    r = requests.post(TOKEN_URL, data=data, headers=headers).json()
+    return r['access_token']
+
 def load_boxscores():
-    page = requests.get(URL)
-    soup = BeautifulSoup(page.content, "lxml")
-    years = soup.select("ol.year-selector a")
-    for y in years:
-        load_boxscores_per_year(int(y.string))
+    START = 2018
+    token = get_token()
+    for y in range(START, datetime.datetime.now().year + 1):
+        load_boxscores_per_year(y, token=token)
 
-def load_boxscores_per_year(year):
-    print(year)
-
-    page = requests.get(URL + "/{}/REG1".format(year))
-    soup = BeautifulSoup(page.content, "lxml")
-    weeks = soup.select("a.week-item")
-    print(weeks)
+def load_boxscores_per_year(year, week=None, token=None):
+    if token is None:
+        token = get_token()
+    headers = {"Authorization": "Bearer {}".format(token)}
+    r = requests.get(SEASON_URL.format(year), headers=headers).json()
+    weeks = r['data']['viewer']['season']['weeks']
+    if week is not None:
+        weeks = [w for w in weeks if weeks['weekOrder'] == week]
     for w in weeks:
-        print(year)
-        load_boxscores_per_week(year, w["href"].split("/")[-1])
-        
-def load_boxscore(year, week, id):
-    print("Loading game {}...".format(id))
-    page = requests.get(BOXSCORE_URL.format(id))
-    soup = BeautifulSoup(page.content, "lxml")
-    teams = [t.a["href"].split("=")[1] for t in
-        soup.select("td.team-column-header")]
-    db.session.add(models.NflBoxscoreGame(id=id, year=year, week=week,
-                                          home_team=teams[1],
-                                          away_team=teams[0]))
-    db.session.commit()
-    for (team, table) in zip(teams, soup.select("table.gc-team-leaders-table")):
-        row = table.tr
-        assert row["class"] == ["thd2"]
-        
-        # Passing
-        cols = ["Passing", "CP/AT", "YDS", "TD", "INT"]
-        for c, td in zip(cols, row.select("td")):
-            assert td.string == c
-        while True:
-            row = row.find_next_sibling("tr")
-            if row["class"] == ["thd2"]: break
-            d = {"team": team, "game_id": id}
-            cols = row.select("td")
-            d["player_id"] = cols[0].a["data-id"]
-            d["player_name"] = cols[0].string
-            d["cp"], d["at"] = [int(x) for x in cols[1].string.split("/")]
-            d["yds"] = int(cols[2].string)
-            d["td"] = int(cols[3].string)
-            d["int"] = int(cols[4].string)
-            db.session.add(models.NflBoxscorePassing(**d))
+        print("year: {}, week: {}".format(w['seasonValue'], w['weekOrder']))
+        game = {"week_order": w['weekOrder'],
+                "week_value": w['weekValue'],
+                "week_type": w['weekType'],
+                "season_value": w['seasonValue'],
+                "season_type": w['seasonType']}
+        for g in w['games']:
+            game.update({"id": g['id'],
+                         "detail_id": g['gameDetailId'],
+                         "home_team_id": g['homeTeam']['id'],
+                         "away_team_id": g['awayTeam']['id'],
+                         "home_team_abbr": g['homeTeam']['abbreviation'],
+                         "away_team_abbr": g['awayTeam']['abbreviation']})
+            db.session.add(models.NflGame(**game))
+            db.session.commit()
+            load_boxscore(g['id'], token)
 
+def load_boxscore(id, token=None):
+    print("Loading game {}...".format(id))
+    if token is None:
+        token = get_token()
+    headers = {"Authorization": "Bearer {}".format(token)}
+    r = requests.get(PLAYER_GAME_STATS_URL.format(id), headers=headers).json()
+    edges = r['data']['viewer']['playerGameStats']['edges']
+    if len(edges) == 0:
+        print("EMPTY")
+    for e in edges:
+        if e['node']['player'] is None:
+            print("PLAYER: NONE")
+            continue
+        stats = {
+            "game_id": e['node']['game']['id'],
+            "team_abbr": e['node']['player']['currentTeam']['abbreviation'],
+            "person_id": e['node']['player']['person']['id'],
+            "person_name": e['node']['player']['person']['displayName']}
+        for s in PLAYER_GAME_STATS:
+            stats[s] = e['node']['gameStats'][stringcase.camelcase(s)]
+        db.session.add(models.NflPlayerGameStats(**stats))
     db.session.commit()

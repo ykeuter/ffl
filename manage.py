@@ -24,19 +24,19 @@ def update_projections():
 
 @manager.command
 def update_boxscores(year=None, week=None):
-    year = int(year)
     if year is None:
-        models.NflBoxscoreGame.query.delete()
+        models.NflGame.query.delete()
         db.session.commit()
         nfl.load_boxscores()
     elif week is None:
-        models.NflBoxscoreGame.query.filter_by(year=year).delete()
+        models.NflGame.query.filter_by(year=int(year)).delete()
         db.session.commit()
-        nfl.load_boxscores_per_year(year)
+        nfl.load_boxscores_per_year(int(year))
     else:
-        models.NflBoxscoreGame.query.filter_by(year=year, week=week).delete()
+        models.NflGame.query.filter_by(
+                year=int(year), week_order=int(week)).delete()
         db.session.commit()
-        nfl.load_boxscores_per_week(year, week)
+        nfl.load_boxscores_per_week(int(year), int(week))
 
 @manager.command
 def load_data():
