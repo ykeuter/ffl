@@ -154,15 +154,13 @@ def load_boxscore(id, token=None):
     if len(edges) == 0:
         print("EMPTY")
     for e in edges:
-        if e['node']['player'] is None:
-            print("PLAYER: NONE")
-            continue
-        stats = {
-            "game_id": e['node']['game']['id'],
-            "team_abbr": e['node']['player']['currentTeam']['abbreviation'],
-            "person_id": e['node']['player']['person']['id'],
-            "person_name": e['node']['player']['person']['displayName']}
-        for s in PLAYER_GAME_STATS:
-            stats[s] = e['node']['gameStats'][stringcase.camelcase(s)]
-        db.session.add(models.NflPlayerGameStats(**stats))
+        stats = {s: e['node']['gameStats'][stringcase.camelcase(s)]
+                 for s in PLAYER_GAME_STATS}
+        if sum(x for x in stats.values() if x is not None):
+            stats.update({
+                "game_id": e['node']['game']['id'],
+                "team_abbr": e['node']['player']['currentTeam']['abbreviation'],
+                "person_id": e['node']['player']['person']['id'],
+                "person_name": e['node']['player']['person']['displayName']})
+            db.session.add(models.NflPlayerGameStats(**stats))
     db.session.commit()
