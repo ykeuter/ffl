@@ -49,8 +49,8 @@ LIVE_URL = 'https://api.nfl.com/v3/shield/?' \
     'rushingTouchdowns rushingYards kickoffReturnsTouchdowns ' \
     'kickoffReturnsYards puntReturnsLong opponentFumbleRecovery ' \
     'totalPointsScored kickReturnsAverageYards puntReturnsAverageYards ' \
-    'puntReturnsTouchdowns}}lastModifiedDate team{{nickName}}' \
-    'player{{position firstName nickName lastName}}}}}}}}}}&' \
+    'puntReturnsTouchdowns}}lastModifiedDate team{{nickName abbreviation}}' \
+    'player{{id position firstName nickName lastName}}}}}}}}}}&' \
     'variables=null'
 
 TOKEN_URL = "https://api.nfl.com/v1/reroute"
@@ -113,10 +113,32 @@ def get_token():
     return r['access_token']
 
 def load_boxscores():
-    START = 2018
+    START = 2010
     token = get_token()
-    for y in range(START, datetime.datetime.now().year + 1):
+    for y in range(START, datetime.datetime.now().year):
         load_boxscores_per_year(y, token=token)
+
+def load_live_boxscore(detail_id, token=None):
+    if token is None:
+        token = get_token()
+    headers = {"Authorization": "Bearer {}".format(token)}
+    r = requests.get(LIVE_URL.format(detail_id), headers=headers).json()
+    edges = r['data']['viewer']['live']['playerGameStats']
+    if len(edges) == 0:
+        print("EMPTY LIVE: {}".format(detail_id))
+    for e in edges:
+        stats = {s: e['gameStats'][stringcase.camelcase(s)]
+                 for s in PLAYER_GAME_STATS}
+        if sum(x for x in stats.values() if x is not None):
+            stats.update({
+                "game_detail_id": detail_id,
+                "team_abbr": e['team']['abbreviation'],
+                "person_id": e['player']['id'],
+                "person_name":
+                    "{} {}".format(e['player']['firstName'],
+                                   e['player']['lastName'])})
+            db.session.add(models.NflLivePlayerGameStats(**stats))
+    db.session.commit()
 
 def load_boxscores_per_year(year, week=None, token=None):
     if token is None:
@@ -143,16 +165,16 @@ def load_boxscores_per_year(year, week=None, token=None):
             db.session.add(models.NflGame(**game))
             db.session.commit()
             load_boxscore(g['id'], token)
+            load_live_boxscore(g['gameDetailId'], token)
 
 def load_boxscore(id, token=None):
-    print("Loading game {}...".format(id))
     if token is None:
         token = get_token()
     headers = {"Authorization": "Bearer {}".format(token)}
     r = requests.get(PLAYER_GAME_STATS_URL.format(id), headers=headers).json()
     edges = r['data']['viewer']['playerGameStats']['edges']
     if len(edges) == 0:
-        print("EMPTY")
+        print("EMPTY: {}".format(id))
     for e in edges:
         stats = {s: e['node']['gameStats'][stringcase.camelcase(s)]
                  for s in PLAYER_GAME_STATS}
