@@ -147,7 +147,7 @@ def load_boxscores_per_year(year, week=None, token=None):
     r = requests.get(SEASON_URL.format(year), headers=headers).json()
     weeks = r['data']['viewer']['season']['weeks']
     if week is not None:
-        weeks = [w for w in weeks if weeks['weekOrder'] == week]
+        weeks = [w for w in weeks if w['weekOrder'] == week]
     for w in weeks:
         print("year: {}, week: {}".format(w['seasonValue'], w['weekOrder']))
         game = {"week_order": w['weekOrder'],

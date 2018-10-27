@@ -1,8 +1,25 @@
 from ffl import db
+from sqlalchemy.dialects.postgresql import ARRAY
 
 playerPosition = db.Table('nfl_player_position',
         db.Column('player_id', db.Integer, db.ForeignKey('nfl_player.id')),
         db.Column('posiiton_id', db.Integer, db.ForeignKey('position.id')))
+
+class SharkProjections(db.Model):
+    segment = db.Column(db.Integer, primary_key=True)
+    scoring = db.Column(db.Integer, primary_key=True)
+    player = db.Column(db.String(64), primary_key=True)
+    team = db.Column(db.String(8), primary_key=True)
+    points = db.Column(db.Float)
+
+class EspnProjections(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    league_id = db.Column(db.Integer, primary_key=True)
+    player = db.Column(db.String(64))
+    team = db.Column(db.String(8))
+    points = db.Column(db.Float)
+    positions =  db.Column(ARRAY(db.String(8)))
+    status = db.Column(db.String(32))
 
 class NflGame(db.Model):
     id = db.Column(db.String(64), primary_key=True)

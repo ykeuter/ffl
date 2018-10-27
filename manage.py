@@ -34,9 +34,9 @@ def update_boxscores(year=None, week=None):
         nfl.load_boxscores_per_year(int(year))
     else:
         models.NflGame.query.filter_by(
-                season_vlaue=int(year), week_order=int(week)).delete()
+                season_value=int(year), week_order=int(week)).delete()
         db.session.commit()
-        nfl.load_boxscores_per_week(int(year), int(week))
+        nfl.load_boxscores_per_year(int(year), int(week))
 
 @manager.command
 def load_data():
