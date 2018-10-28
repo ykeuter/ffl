@@ -1,4 +1,4 @@
-from ffl import app, db, models, espn, nfl
+from ffl import app, db, models, espn, nfl, shark
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 import csv
@@ -14,13 +14,23 @@ def delete_data():
     models.NflPlayer.query.delete()
     models.Position.query.delete()
     models.NflGame.query.delete()
-    models.NflTeam.query.delete()
+    models.FieldTeam.query.delete()
     db.session.commit()
     print("Deleted all data.")
 
 @manager.command
-def update_projections():
-    espn.update_projections()
+def shark_proj(period=app.config['SHARK_SEGMENT'],
+               scoring=app.config['SHARK_SCORING']):
+    models.SharkProjections.query.filter_by(scoring=int(scoring),
+                                            segment=int(period)).delete()
+    db.session.commit()
+    shark.update_projections(int(period), int(scoring))
+
+@manager.command
+def espn_proj(league_id=app.config['ESPN_LEAGUE_ID']):
+    models.EspnProjections.query.filter_by(league_id=int(league_id)).delete()
+    db.session.commit()
+    espn.update_projections(int(league_id))
 
 @manager.command
 def update_boxscores(year=None, week=None):
@@ -40,13 +50,15 @@ def update_boxscores(year=None, week=None):
 
 @manager.command
 def load_data():
+    delete_data()
     with open(app.config['TEAMS_FILE']) as f:
         r = csv.reader(f)
         next(r)
-        teams = [models.NflTeam(int(row[2]), row[1], row[0]) for row in r]
-    for t in teams:
-        db.session.add(t)
-    db.session.commit()
+        for row in r:
+            db.session.add(models.FieldTeam(espn_id=int(row[2]),
+                                            espn_code=row[1],
+                                            name=row[0]))
+        db.session.commit()
 
     # BYE_STRING = "BYE"
     # with open(app.config['SCHEDULE_FILE']) as f:

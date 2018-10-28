@@ -8,18 +8,28 @@ playerPosition = db.Table('nfl_player_position',
 class SharkProjections(db.Model):
     segment = db.Column(db.Integer, primary_key=True)
     scoring = db.Column(db.Integer, primary_key=True)
-    player = db.Column(db.String(64), primary_key=True)
-    team = db.Column(db.String(8), primary_key=True)
+    player_name = db.Column(db.String(64), primary_key=True)
+    team_id = db.Column(db.Integer, db.ForeignKey('field_team.id'),
+                        primary_key=True)
+    position = db.Column(db.String(8))
     points = db.Column(db.Float)
+    team = db.relationship('FieldTeam', backref='shark_projections')
 
 class EspnProjections(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, primary_key=True)
     league_id = db.Column(db.Integer, primary_key=True)
-    player = db.Column(db.String(64))
-    team = db.Column(db.String(8))
+    player_name = db.Column(db.String(64))
+    team_id = db.Column(db.Integer, db.ForeignKey('field_team.id'))
     points = db.Column(db.Float)
     positions =  db.Column(ARRAY(db.String(8)))
     status = db.Column(db.String(32))
+    team = db.relationship('FieldTeam', backref='espn_projections')
+
+class FieldTeam(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32))
+    espn_code = db.Column(db.String(32))
+    espn_id = db.Column(db.Integer)
 
 class NflGame(db.Model):
     id = db.Column(db.String(64), primary_key=True)
