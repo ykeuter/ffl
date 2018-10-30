@@ -11,6 +11,8 @@ manager.add_command('db', MigrateCommand)
 @manager.command
 def delete_data():
     db.session.execute(models.playerPosition.delete())
+    models.EspnProjections.query.delete()
+    models.SharkProjections.query.delete()
     models.NflPlayer.query.delete()
     models.Position.query.delete()
     models.NflGame.query.delete()
@@ -57,7 +59,8 @@ def load_data():
         for row in r:
             db.session.add(models.FieldTeam(espn_id=int(row[2]),
                                             espn_code=row[1],
-                                            name=row[0]))
+                                            name=row[0],
+                                            shark_code=row[3]))
         db.session.commit()
 
     # BYE_STRING = "BYE"

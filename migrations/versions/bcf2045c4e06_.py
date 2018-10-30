@@ -21,7 +21,7 @@ def upgrade():
     op.create_table('field_team',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=32), nullable=True),
-    sa.Column('espn_code', sa.String(length=32), nullable=True),
+    sa.Column('espn_code', sa.String(length=8), nullable=True),
     sa.Column('espn_id', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )

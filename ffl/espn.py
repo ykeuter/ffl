@@ -21,6 +21,7 @@ DRAFT_UPDATE_URL = \
 
 def update_projections(league_id):
     teams = models.FieldTeam.query.all()
+    ids = [p.espn_id for p in models.FieldPlayer.query.all()]
     url = PLAYERS_URL.format(league_id)
     while url:
 #        print "Processing " + url + "..."
@@ -35,11 +36,13 @@ def update_projections(league_id):
             st = pr.select("td")[1].string
 
             tag = pr.select("td.playertablePlayerName")[0]
-            id = int(tag.a["playerid"])
+            id_ = int(tag.a["playerid"])
+            if id_ not in ids:
+                db.session.add(models.FieldPlayer(espn_id=id_))
             name = tag.a.string
             details = list(tag.strings)[1].split(None, 2)
             if details[0] == DEF_STRING:
-                team = next(t for t in teams if t.espn_id == id)
+                team = next(t for t in teams if t.espn_id == id_)
                 pos = details[0]
             else:
                 if details[1] == FA_STRING:
@@ -50,7 +53,7 @@ def update_projections(league_id):
                 pos = [s.strip() for s in details[2].split(",")]
 
             db.session.add(models.EspnProjections(
-                player_id=id, player_name=name, team=team,
+                player_id=id_, player_name=name, team=team,
                 points=pts, league_id=league_id, positions=pos, status=st))
 
         url = soup.find(string="NEXT")
