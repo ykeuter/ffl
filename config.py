@@ -9,6 +9,7 @@ SQLALCHEMY_DATABASE_URI = os.environ['FFL_DB_URL']
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 POSITIONS_FILE = "data/positions.csv"
 TEAMS_FILE = "data/teams.csv"
+PLAYERS_FILE = "data/players.csv"
 #PROJECTIONS_FILE = "data/projections.csv"
 #SCHEDULE_FILE = "data/schedule.csv"
 # ESPN_LOGIN_URL = \

@@ -37,13 +37,13 @@ def update_projections(league_id):
 
             tag = pr.select("td.playertablePlayerName")[0]
             id_ = int(tag.a["playerid"])
-            if id_ not in ids:
-                db.session.add(models.FieldPlayer(espn_id=id_))
             name = tag.a.string
+            if id_ not in ids:
+                db.session.add(models.FieldPlayer(espn_id=id_, name=name))
             details = list(tag.strings)[1].split(None, 2)
             if details[0] == DEF_STRING:
                 team = next(t for t in teams if t.espn_id == id_)
-                pos = details[0]
+                pos = [details[0]]
             else:
                 if details[1] == FA_STRING:
                     team = None

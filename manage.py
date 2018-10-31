@@ -17,6 +17,7 @@ def delete_data():
     models.Position.query.delete()
     models.NflGame.query.delete()
     models.FieldTeam.query.delete()
+    models.FieldPlayer.query.delete()
     db.session.commit()
     print("Deleted all data.")
 
@@ -27,6 +28,10 @@ def shark_proj(period=app.config['SHARK_SEGMENT'],
                                             segment=int(period)).delete()
     db.session.commit()
     shark.update_projections(int(period), int(scoring))
+
+@manager.command
+def shark_check():
+    shark.check_sanity()
 
 @manager.command
 def espn_proj(league_id=app.config['ESPN_LEAGUE_ID']):
@@ -53,6 +58,16 @@ def update_boxscores(year=None, week=None):
 @manager.command
 def load_data():
     delete_data()
+
+    with open(app.config['PLAYERS_FILE']) as f:
+        r = csv.reader(f)
+        next(r)
+        for row in r:
+            db.session.add(models.FieldPlayer(espn_id=int(row[0]),
+                                              shark_id=int(row[1]),
+                                              name=row[2]))
+        db.session.commit()
+
     with open(app.config['TEAMS_FILE']) as f:
         r = csv.reader(f)
         next(r)
