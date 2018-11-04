@@ -24,9 +24,6 @@ def delete_data():
 @manager.command
 def shark_proj(period=app.config['SHARK_SEGMENT'],
                scoring=app.config['SHARK_SCORING']):
-    models.SharkProjections.query.filter_by(scoring=int(scoring),
-                                            segment=int(period)).delete()
-    db.session.commit()
     shark.update_projections(int(period), int(scoring))
 
 @manager.command
@@ -35,8 +32,6 @@ def shark_check():
 
 @manager.command
 def espn_proj(league_id=app.config['ESPN_LEAGUE_ID']):
-    models.EspnProjections.query.filter_by(league_id=int(league_id)).delete()
-    db.session.commit()
     espn.update_projections(int(league_id))
 
 @manager.command
@@ -54,6 +49,40 @@ def update_boxscores(year=None, week=None):
                 season_value=int(year), week_order=int(week)).delete()
         db.session.commit()
         nfl.load_boxscores_per_year(int(year), int(week))
+
+@manager.command
+def update_players():
+    dummy = models.FieldPlayer(espn_id=-1,
+                               shark_id=-1,
+                               name="dummy")
+    db.session.add(dummy)
+    players = models.FieldPlayer.query.all()
+    with open(app.config['PLAYERS_FILE']) as f:
+        r = csv.reader(f)
+        next(r)
+        for row in r:
+            sh = next((p for p in players if p.shark_id == int(row[1])),
+                      None)
+            es = next((p for p in players if p.espn_id == int(row[0])),
+                      None)
+            if sh:
+                if sh is es:
+                    continue
+                dummy.shark_projections = sh.shark_projections
+                db.session.delete(sh)
+            if es:
+                dummy.espn_projections = es.espn_projections
+                db.session.delete(es)
+            db.session.commit()
+            p = models.FieldPlayer(espn_id=int(row[0]),
+                                   shark_id=int(row[1]),
+                                   name=row[2],
+                                   shark_projections=dummy.shark_projections,
+                                   espn_projections=dummy.espn_projections)
+            db.session.add(p)
+            db.session.commit()
+    db.session.delete(dummy)
+    db.session.commit()
 
 @manager.command
 def load_data():

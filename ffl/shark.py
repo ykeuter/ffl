@@ -9,6 +9,9 @@ URL = "https://www.fantasysharks.com/apps/bert/forecasts/projections.php?" \
       "Segment={}&Position=99&scoring={}"
 
 def update_projections(segment, scoring):
+    models.SharkProjections.query.filter_by(scoring=int(scoring),
+                                            segment=int(segment)).delete()
+    db.session.commit()
     teams = models.FieldTeam.query.all()
     ids = [p.shark_id for p in models.FieldPlayer.query.all()]
 
@@ -32,7 +35,8 @@ def update_projections(segment, scoring):
             scoring=scoring,points=pts, position=pos))
 
     db.session.commit()
-    print("Updated Fantasy Shark projections.")
+    print("Updated Fantasy Shark projections for segment {} and scoring {}.".
+            format(segment, scoring))
     check_sanity()
 
 def check_sanity():

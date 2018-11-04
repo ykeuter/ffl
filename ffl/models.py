@@ -15,7 +15,7 @@ class SharkProjections(db.Model):
     position = db.Column(db.String(8))
     points = db.Column(db.Float)
     team = db.relationship('FieldTeam', backref='shark_projections')
-    player = db.relationship('FieldPlayer', backref='shark_projecions')
+    player = db.relationship('FieldPlayer', backref='shark_projections')
 
 class EspnProjections(db.Model):
     player_id = db.Column(db.Integer, db.ForeignKey('field_player.espn_id'),
@@ -27,7 +27,7 @@ class EspnProjections(db.Model):
     positions =  db.Column(ARRAY(db.String(8)))
     status = db.Column(db.String(32))
     team = db.relationship('FieldTeam', backref='espn_projections')
-    player = db.relationship('FieldPlayer', backref='espn_projecions')
+    player = db.relationship('FieldPlayer', backref='espn_projections')
 
 class FieldPlayer(db.Model):
     id = db.Column(db.Integer, primary_key=True)

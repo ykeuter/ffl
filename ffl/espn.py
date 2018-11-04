@@ -20,6 +20,8 @@ DRAFT_UPDATE_URL = \
     "1={}&2={}&3={}&4={}&5={}&poll=0"
 
 def update_projections(league_id):
+    models.EspnProjections.query.filter_by(league_id=int(league_id)).delete()
+    db.session.commit()
     teams = models.FieldTeam.query.all()
     ids = [p.espn_id for p in models.FieldPlayer.query.all()]
     url = PLAYERS_URL.format(league_id)
@@ -59,7 +61,7 @@ def update_projections(league_id):
         url = soup.find(string="NEXT")
         if url: url = url.parent["href"]
     db.session.commit()
-    print("Updated ESPN projections.")
+    print("Updated ESPN projections for league {}.".format(league_id))
 
 def initDraft():
     url = DRAFT_INIT_URL.format(LEAGUE_ID, TEAM_ID, TEAM_ID)
